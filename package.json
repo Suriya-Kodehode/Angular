@@ -1,0 +1,61 @@
+{
+  "name": "angular-workspace",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve my-app",
+    "serve": "ng serve my-app",
+    "serve:my-app": "ng serve my-app",
+    "serve:project": "npm run ng -- serve",
+    "build": "ng build",
+    "build:my-app": "ng build my-app",
+    "build:my-lib": "ng build my-lib",
+    "build:all": "npm run build:my-app && npm run build:my-lib",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "test:my-app": "ng test my-app --watch=false",
+    "test:my-lib": "ng test my-lib --watch=false",
+    "lint:my-app": "ng lint my-app",
+    "lint:my-lib": "ng lint my-lib",
+    "list-projects": "node -p \"Object.keys(require('./angular.json').projects).join('\\\\n')\"",
+    "serve:ssr:my-app": "node dist/my-app/server/server.mjs"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "packageManager": "npm@11.4.2",
+  "dependencies": {
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/forms": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "@angular/platform-server": "^21.0.0",
+    "@angular/router": "^21.0.0",
+    "@angular/ssr": "^21.0.3",
+    "express": "^5.2.1",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.0.3",
+    "@angular/cli": "^21.0.3",
+    "@angular/compiler-cli": "^21.0.0",
+    "@types/express": "^5.0.1",
+    "@types/node": "^20.17.19",
+    "jsdom": "^27.1.0",
+    "ng-packagr": "^21.0.0",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  }
+}

@@ -1,0 +1,13 @@
+[{
+	"resource": "/d:/Projects/Angular/projects/my-app/tsconfig.spec.json",
+	"owner": "typescript",
+	"severity": 8,
+	"message": "The common source directory of 'tsconfig.spec.json' is './src/app'. The 'rootDir' setting must be explicitly set to this or another path to adjust your output's file layout.\n  Visit https://aka.ms/ts6 for migration information.",
+	"source": "ts",
+	"startLineNumber": 6,
+	"startColumn": 5,
+	"endLineNumber": 6,
+	"endColumn": 13,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+}]

@@ -1,0 +1,9 @@
+// Header layout styles
+// Component-specific visual styles belong in the component's own .scss file
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  width: 100%;
+}

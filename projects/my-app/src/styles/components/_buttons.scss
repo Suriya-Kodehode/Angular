@@ -1,0 +1,52 @@
+// Global button base styles
+// Use these only for truly global button patterns.
+// Feature/component-specific button styles belong in their own .scss file.
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: opacity var(--transition-fast), background-color var(--transition-fast);
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  // Variants
+  &--primary {
+    background-color: var(--color-primary-500);
+    color: #fff;
+
+    &:hover:not(:disabled) {
+      background-color: var(--color-primary-900);
+    }
+  }
+
+  &--secondary {
+    background-color: var(--color-gray-100);
+    color: var(--color-gray-900);
+
+    &:hover:not(:disabled) {
+      opacity: 0.8;
+    }
+  }
+
+  // Sizes
+  &--sm {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+
+  &--lg {
+    padding: var(--spacing-md) var(--spacing-xl);
+    font-size: var(--font-size-lg);
+  }
+}

@@ -6,20 +6,207 @@ $breakpoints: (
   'wide':    1280px,
 );
 
-// ─── Design tokens (runtime — use CSS custom properties) ─────────────────────
+// ─── Layer 1: Primitive palette (raw values — do not use directly in components) ──
 :root {
-  // Colors
-  --color-primary-100: #e3f2fd;
-  --color-primary-500: #2196f3;
-  --color-primary-900: #0d47a1;
+  // Base — pure values
+  --white: #ffffff;
+  --black: #000000;
 
-  --color-gray-100: #f5f5f5;
-  --color-gray-500: #9e9e9e;
-  --color-gray-900: #212121;
+  // White alpha scale — white with opacity (overlays, glass, hover tints)
+  --white-100: rgb(255 255 255 / 0.06); // barely visible — subtle highlight
+  --white-200: rgb(255 255 255 / 0.12); // light — card border on dark bg
+  --white-300: rgb(255 255 255 / 0.20); // soft — hover overlay on dark surface
+  --white-500: rgb(255 255 255 / 0.50); // mid — glass effect, scrim
+  --white-700: rgb(255 255 255 / 0.70); // strong — modal overlay tint
+  --white-800: rgb(255 255 255 / 0.80); // very strong — frosted glass
+  --white-900: rgb(255 255 255 / 0.90); // near opaque — high contrast overlay
+  --white-950: rgb(255 255 255 / 0.96); // near pure — almost solid white
 
-  --color-success: #4caf50;
-  --color-warning: #ff9800;
-  --color-error:   #f44336;
+  // Black alpha scale — black with opacity (shadows, scrims, darkening)
+  --black-100: rgb(0 0 0 / 0.06); // barely visible — subtle shadow
+  --black-200: rgb(0 0 0 / 0.12); // light — card shadow, input border
+  --black-300: rgb(0 0 0 / 0.20); // soft — hover darken overlay
+  --black-500: rgb(0 0 0 / 0.50); // mid — modal backdrop, scrim
+  --black-700: rgb(0 0 0 / 0.70); // strong — dark overlay
+  --black-800: rgb(0 0 0 / 0.80); // very strong — deep scrim
+  --black-900: rgb(0 0 0 / 0.90); // near opaque — high contrast overlay
+  --black-950: rgb(0 0 0 / 0.96); // near pure — almost solid black
+
+  // Blue
+  --blue-100: #e3f2fd; // very light sky — backgrounds, highlights
+  --blue-200: #bbdefb; // light — borders, hover bg
+  --blue-300: #64b5f6; // soft blue — dark mode primary
+  --blue-500: #2196f3; // vivid blue — light mode primary
+  --blue-700: #1976d2; // dark — hover state
+  --blue-800: #1565c0; // darker — pressed state
+  --blue-900: #0d47a1; // deep navy — strong emphasis
+  --blue-950: #1a2a3a; // near-black blue — dark mode primary-light bg
+
+  // Gray
+  --gray-100: #f5f5f5; // lightest — light mode surface
+  --gray-200: #eeeeee; // light — borders, secondary bg
+  --gray-500: #9e9e9e; // mid — muted text, placeholders
+  --gray-700: #616161; // dark — dark mode secondary
+  --gray-800: #2c2c2c; // darker — dark mode border
+  --gray-850: #1e1e1e; // very dark — dark mode surface
+  --gray-900: #212121; // near-black — light mode text
+  --gray-950: #121212; // deepest — dark mode background
+
+  // Green
+  --green-100: #e8f5e9; // very light — success bg tint
+  --green-200: #c8e6c9; // light — success border
+  --green-300: #a5d6a7; // soft — success hover in dark
+  --green-500: #4caf50; // vivid — base success
+  --green-700: #388e3c; // dark — success hover
+  --green-800: #2e7d32; // darker — success pressed
+  --green-900: #1b5e20; // deep — strong emphasis
+  --green-950: #0d3b10; // near-black green — darkest tint
+
+  // Orange
+  --orange-100: #fff3e0; // very light — warning bg tint
+  --orange-200: #ffe0b2; // light — warning border
+  --orange-300: #ffcc80; // soft — warning hover in dark
+  --orange-500: #ff9800; // vivid — base warning
+  --orange-700: #f57c00; // dark — warning hover
+  --orange-800: #ef6c00; // darker — warning pressed
+  --orange-900: #e65100; // deep — strong emphasis
+  --orange-950: #7a2900; // near-black orange — darkest tint
+
+  // Red
+  --red-100: #ffebee; // very light — error bg tint
+  --red-200: #ffcdd2; // light — error border
+  --red-300: #ef9a9a; // soft — error hover in dark
+  --red-500: #f44336; // vivid — base error
+  --red-700: #d32f2f; // dark — error hover
+  --red-800: #c62828; // darker — error pressed
+  --red-900: #b71c1c; // deep — strong emphasis
+  --red-950: #5f0a0a; // near-black red — darkest tint
+
+  // Yellow
+  --yellow-100: #fffde7; // very light — caution bg tint
+  --yellow-200: #fff9c4; // light — caution border
+  --yellow-300: #fff176; // soft — caution hover in dark
+  --yellow-500: #ffeb3b; // vivid — base caution
+  --yellow-700: #f9a825; // dark — caution hover
+  --yellow-800: #f57f17; // darker — caution pressed
+  --yellow-900: #e65100; // deep — strong emphasis
+  --yellow-950: #7a3a00; // near-black yellow — darkest tint
+
+  // Amber
+  --amber-100: #fff8e1; // very light — soft warning bg tint
+  --amber-200: #ffecb3; // light — soft warning border
+  --amber-300: #ffe082; // soft — soft warning hover in dark
+  --amber-500: #ffc107; // vivid — base amber
+  --amber-700: #ffa000; // dark — amber hover
+  --amber-800: #ff8f00; // darker — amber pressed
+  --amber-900: #ff6f00; // deep — strong emphasis
+  --amber-950: #7a3800; // near-black amber — darkest tint
+
+  // Teal
+  --teal-100: #e0f2f1; // very light — info bg tint
+  --teal-200: #b2dfdb; // light — info border
+  --teal-300: #80cbc4; // soft — info hover in dark
+  --teal-500: #009688; // vivid — base info/teal
+  --teal-700: #00796b; // dark — teal hover
+  --teal-800: #00695c; // darker — teal pressed
+  --teal-900: #004d40; // deep — strong emphasis
+  --teal-950: #00221a; // near-black teal — darkest tint
+
+  // Cyan
+  --cyan-100: #e0f7fa; // very light — info bg tint (lighter)
+  --cyan-200: #b2ebf2; // light — info border
+  --cyan-300: #80deea; // soft — info hover in dark
+  --cyan-500: #00bcd4; // vivid — base cyan
+  --cyan-700: #0097a7; // dark — cyan hover
+  --cyan-800: #00838f; // darker — cyan pressed
+  --cyan-900: #006064; // deep — strong emphasis
+  --cyan-950: #002b2e; // near-black cyan — darkest tint
+
+  // Indigo
+  --indigo-100: #e8eaf6; // very light — nav/active bg tint
+  --indigo-200: #c5cae9; // light — nav border
+  --indigo-300: #9fa8da; // soft — nav hover in dark
+  --indigo-500: #3f51b5; // vivid — base indigo
+  --indigo-700: #303f9f; // dark — indigo hover
+  --indigo-800: #283593; // darker — indigo pressed
+  --indigo-900: #1a237e; // deep — strong emphasis
+  --indigo-950: #0a0e3f; // near-black indigo — darkest tint
+
+  // Purple
+  --purple-100: #f3e5f5; // very light — badge/tag bg tint
+  --purple-200: #e1bee7; // light — badge border
+  --purple-300: #ce93d8; // soft — badge hover in dark
+  --purple-500: #9c27b0; // vivid — base purple
+  --purple-700: #7b1fa2; // dark — purple hover
+  --purple-800: #6a1b9a; // darker — purple pressed
+  --purple-900: #4a148c; // deep — strong emphasis
+  --purple-950: #21005e; // near-black purple — darkest tint
+
+  // Violet
+  --violet-100: #ede7f6; // very light — accent bg tint
+  --violet-200: #d1c4e9; // light — accent border
+  --violet-300: #b39ddb; // soft — accent hover in dark
+  --violet-500: #673ab7; // vivid — base violet
+  --violet-700: #512da8; // dark — violet hover
+  --violet-800: #4527a0; // darker — violet pressed
+  --violet-900: #311b92; // deep — strong emphasis
+  --violet-950: #150070; // near-black violet — darkest tint
+
+  // Pink
+  --pink-100: #fce4ec; // very light — highlight/tag bg tint
+  --pink-200: #f8bbd0; // light — highlight border
+  --pink-300: #f48fb1; // soft — highlight hover in dark
+  --pink-500: #e91e63; // vivid — base pink
+  --pink-700: #c2185b; // dark — pink hover
+  --pink-800: #ad1457; // darker — pink pressed
+  --pink-900: #880e4f; // deep — strong emphasis
+  --pink-950: #40002a; // near-black pink — darkest tint
+
+  // Rose
+  --rose-100: #ffeef2; // very light — soft pink bg tint
+  --rose-200: #ffc4d0; // light — soft pink border
+  --rose-300: #ff90a8; // soft — rose hover in dark
+  --rose-500: #f43f5e; // vivid — base rose
+  --rose-700: #be123c; // dark — rose hover
+  --rose-800: #9f1239; // darker — rose pressed
+  --rose-900: #881337; // deep — strong emphasis
+  --rose-950: #4c0519; // near-black rose — darkest tint
+}
+
+// ─── Layer 2: Semantic tokens (use these in components and layout) ────────────
+:root {
+  // Primary
+  --color-primary:              var(--blue-500);   // fill — button bg, icon fill
+  --color-on-primary:           var(--white);           // text/icon on primary fill
+  --color-primary-container:    var(--blue-100);   // tinted bg — chips, cards, badges
+  --color-primary-on-container: var(--blue-900);   // text/icon on primary-container
+  --color-primary-hover:        var(--blue-900);
+
+  // Secondary (gray-based — update when you define a second brand color)
+  --color-secondary:              var(--gray-200);  // fill — secondary button bg
+  --color-on-secondary:           var(--black);  // text/icon on secondary fill
+  --color-secondary-container:    var(--gray-100);  // tinted bg — secondary chips, rows
+  --color-secondary-on-container: var(--gray-900);  // text/icon on secondary-container
+  --color-secondary-hover:        var(--gray-500);
+
+  // Tertiary (purple-based — accent, tags, premium UI)
+  --color-tertiary:              var(--purple-500);  // fill — accent button bg
+  --color-on-tertiary:           var(--white);            // text/icon on tertiary fill
+  --color-tertiary-container:    var(--purple-100);  // tinted bg — tags, badges, highlights
+  --color-tertiary-on-container: var(--purple-900);  // text/icon on tertiary-container
+  --color-tertiary-hover:        var(--purple-700);
+
+  // Status
+  --color-success: var(--green-500);
+  --color-warning: var(--orange-500);
+  --color-error:   var(--red-500);
+
+  // Surface & text
+  --color-bg:          var(--white);
+  --color-surface:     var(--gray-100);
+  --color-text:        var(--gray-900);
+  --color-text-muted:  var(--gray-500);
+  --color-border:      var(--gray-200);
 
   // Spacing
   --spacing-xs: 0.25rem;
@@ -51,9 +238,9 @@ $breakpoints: (
   --radius-full: 9999px;
 
   // Shadows
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-sm: 0 1px 2px 0 var(--black-100);
+  --shadow-md: 0 4px 6px -1px var(--black-200);
+  --shadow-lg: 0 10px 15px -3px var(--black-200);
 
   // Transitions
   --transition-fast:   150ms ease-in-out;

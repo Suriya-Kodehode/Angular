@@ -1,0 +1,24 @@
+// Component-scoped styles for ButtonComponent.
+// Only contains styles for elements inside this component's template.
+//
+// Base button appearance (.btn, .btn--*, sizes) is defined globally in:
+//   styles/components/_buttons.scss
+// Those styles are applied via [class]="btnClass()" on the inner <button> element.
+//
+// .btn__spinner is defined here (not in _buttons.scss) because it is
+// only ever rendered inside this component's template — it is not a
+// reusable global pattern.
+
+.btn__spinner {
+  display: inline-block;
+  width: 0.875em;
+  height: 0.875em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.6s linear infinite;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}

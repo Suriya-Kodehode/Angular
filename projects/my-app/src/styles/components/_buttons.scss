@@ -1,6 +1,20 @@
 // Global button base styles
 // Use these only for truly global button patterns.
 // Feature/component-specific button styles belong in their own .scss file.
+//
+// These styles target the native <button> element via BEM classes.
+// They are applied by ButtonComponent via [class]="btnClass()" on its inner <button>.
+//
+// Class composition (set by ButtonComponent.btnClass()):
+//   .btn              — base layout, spacing, typography, cursor, transition
+//   .btn--primary     — primary colour variant (default)
+//   .btn--secondary   — secondary colour variant
+//   .btn--sm          — small size override
+//   .btn--md          — medium size (base padding, no override needed)
+//   .btn--lg          — large size override
+//
+// Spinner styles (.btn__spinner) live in button.component.scss,
+// not here, because they are internal to the ButtonComponent template.
 
 .btn {
   display: inline-flex;
@@ -22,20 +36,20 @@
 
   // Variants
   &--primary {
-    background-color: var(--color-primary-500);
-    color: #fff;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
 
     &:hover:not(:disabled) {
-      background-color: var(--color-primary-900);
+      background-color: var(--color-primary-hover);
     }
   }
 
   &--secondary {
-    background-color: var(--color-gray-100);
-    color: var(--color-gray-900);
+    background-color: var(--color-secondary);
+    color: var(--color-on-secondary);
 
     &:hover:not(:disabled) {
-      opacity: 0.8;
+      background-color: var(--color-secondary-hover);
     }
   }
 

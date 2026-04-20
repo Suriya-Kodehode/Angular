@@ -1,14 +1,14 @@
 // Global card base styles
 
 .card {
-  background-color: #fff;
+  background-color: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   overflow: hidden;
 
   &__header {
     padding: var(--spacing-md) var(--spacing-lg);
-    border-bottom: 1px solid var(--color-gray-100);
+    border-bottom: 1px solid var(--color-border);
   }
 
   &__body {
@@ -17,6 +17,6 @@
 
   &__footer {
     padding: var(--spacing-md) var(--spacing-lg);
-    border-top: 1px solid var(--color-gray-100);
+    border-top: 1px solid var(--color-border);
   }
 }

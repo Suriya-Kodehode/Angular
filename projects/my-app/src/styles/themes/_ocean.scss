@@ -1,0 +1,37 @@
+// ─── Ocean palette — light mode ──────────────────────────────────────────────
+// Overrides Layer 2 brand tokens with a teal/cyan/indigo palette.
+// Surface & text tokens stay at default light values unless overridden here.
+//
+// Applied via: <html data-theme="ocean">
+
+[data-theme='ocean'] {
+  color-scheme: light;
+
+  // Primary — teal
+  --color-primary:              var(--teal-500);
+  --color-on-primary:           var(--white);
+  --color-primary-container:    var(--teal-100);
+  --color-primary-on-container: var(--teal-900);
+  --color-primary-hover:        var(--teal-700);
+
+  // Secondary — cyan
+  --color-secondary:              var(--cyan-200);
+  --color-on-secondary:           var(--black);
+  --color-secondary-container:    var(--cyan-100);
+  --color-secondary-on-container: var(--cyan-900);
+  --color-secondary-hover:        var(--cyan-500);
+
+  // Tertiary — indigo
+  --color-tertiary:              var(--indigo-500);
+  --color-on-tertiary:           var(--white);
+  --color-tertiary-container:    var(--indigo-100);
+  --color-tertiary-on-container: var(--indigo-900);
+  --color-tertiary-hover:        var(--indigo-700);
+
+  // Surface & text — teal-tinted light
+  --color-bg:         var(--white);
+  --color-surface:    var(--teal-100);
+  --color-text:       var(--gray-900);
+  --color-text-muted: var(--gray-500);
+  --color-border:     var(--teal-200);
+}

@@ -175,6 +175,8 @@ $breakpoints: (
 
 // ─── Layer 2: Semantic tokens (use these in components and layout) ────────────
 :root {
+  color-scheme: light;
+
   // Primary
   --color-primary:              var(--blue-500);   // fill — button bg, icon fill
   --color-on-primary:           var(--white);           // text/icon on primary fill

@@ -32,7 +32,7 @@
 | Frontend | Angular 21.2, SSR (`AngularNodeAppEngine`) |
 | Language | TypeScript 5.9 |
 | Styling | SCSS (7-1 pattern) |
-| Backend | Express 5 |
+| Backend | Express 5 · Bun 1.3.13 |
 | Testing | Vitest + jsdom |
 | Library build | ng-packagr |
 
@@ -68,9 +68,9 @@ npm run test:my-lib
 
 **Express server** _(run from `projects/server`)_
 ```bash
-npm run dev                # watch mode (--experimental-strip-types)
-npm run build              # tsc → dist/
-npm start                  # node dist/main.js
+bun run dev                # watch mode (bun --watch)
+bun run start              # run directly with Bun
+bun run typecheck          # type-check only (tsc --noEmit)
 ```
 
 ---

@@ -17,7 +17,7 @@ d:\Projects\Angular\
 │   └── tasks.json                 ← workspace task definitions
 ├── projects/
 │   ├── my-app/                    ← Angular SSR application
-│   ├── my-lib/                    ← publishable Angular library
+│   ├── my-lib/                    ← Angular library + shared TypeScript DTOs for Angular & server
 │   ├── scripts/                   ← workspace-level utility scripts (empty)
 │   ├── server/                    ← standalone Express backend
 │   └── temp/                      ← scratch / log files
@@ -40,7 +40,7 @@ d:\Projects\Angular\
 | `start` / `serve` | `ng serve my-app` |
 | `build:my-app` | production build of the Angular app |
 | `build:my-lib` | build the Angular library |
-| `build:all` | build lib then app |
+| `build:all` | build app then lib (⚠ wrong order — run `build:my-lib` manually first if `dist/my-lib` is missing) |
 | `test:my-app` / `test:my-lib` | single-run Vitest suites |
 | `serve:ssr:my-app` | run the compiled SSR server |
 
@@ -49,6 +49,7 @@ d:\Projects\Angular\
 | Alias | Resolves to |
 |---|---|
 | `my-lib` / `@my-lib` | `dist/my-lib` |
+| `@my-lib/*` | `dist/my-lib/*` (sub-path imports) |
 | `@app/shared` | `projects/my-app/src/app/shared/index.ts` |
 | `@app/core/*` | `projects/my-app/src/app/core/*` |
 | `@app/features/*` | `projects/my-app/src/app/features/*` |
@@ -128,7 +129,11 @@ my-app/
 
 ## Angular Library — `projects/my-lib/`
 
-Publishable library built with `ng-packagr`. Consumed via the `my-lib` / `@my-lib` path alias (points to `dist/my-lib` after build).
+Publishable library built with `ng-packagr`. Contains two distinct outputs:
+- **Main entry** (`my-lib` / `@my-lib`) — Angular components, directives, pipes, services. Angular-only consumers.
+- **Secondary entry** (`my-lib/models`) — pure TypeScript DTOs, interfaces, enums. Consumed by both Angular and the Bun server.
+
+Organized **by domain** — each domain area is self-contained. Flat type folders exist only for items that are genuinely generic with no domain affiliation.
 
 ```
 my-lib/
@@ -139,27 +144,41 @@ my-lib/
 ├── tsconfig.lib.prod.json
 ├── tsconfig.spec.json
 └── src/
-    ├── public-api.ts        ← only public exports — export * from './lib/my-lib'
+    ├── public-api.ts        ← Angular exports only — components, directives, pipes, services
+    ├── models/              ← secondary entry point (ng-packagr)
+    │   ├── ng-package.json  ← { "lib": { "entryFile": "public-api.ts" } }
+    │   └── public-api.ts    ← re-exports all shared DTOs/models
     └── lib/
-        ├── my-lib.ts        ← library entry (rename/replace with real entry point)
-        ├── my-lib.spec.ts
-        ├── components/      ← exportable components
-        ├── directives/      ← exportable directives
-        ├── models/          ← exported interfaces / types
-        ├── pipes/           ← exportable pipes
-        └── services/        ← exportable services
+        ├── <domain>/        ← one folder per domain (e.g. auth/, table/, forms/)
+        │   ├── components/
+        │   ├── models/      ← DTOs and interfaces for this domain — pure TypeScript, no Angular imports
+        │   ├── services/
+        │   ├── directives/
+        │   └── pipes/
+        ├── components/      ← truly generic, domain-free components only
+        ├── models/          ← cross-domain DTOs and shared interfaces — pure TypeScript, no Angular imports
+        ├── pipes/           ← truly generic, domain-free pipes only
+        └── services/        ← truly generic, domain-free services only
 ```
+
+### Library conventions
+- New code goes into the relevant **domain folder first** — only use flat folders if the item has no domain context
+- Angular exports go through `src/public-api.ts`; DTOs/models go through the `my-lib/models` secondary entry (`src/models/public-api.ts`)
+- **Models/DTOs must be pure TypeScript** — interfaces, types, enums only; zero `@angular/*` imports or decorators
+- The main `my-lib` entry exports Angular-decorated code — **never import it in the server** (Angular decorators execute at import time and crash Bun)
+- The `my-lib/models` secondary entry is framework-agnostic and safe for both Angular and the Bun server
+- To consume models in the server, add `"my-lib/models": ["../../dist/my-lib/models"]` to `projects/server/tsconfig.json` `paths`; use `import type` to guarantee zero runtime overhead
 
 ---
 
 ## Express Server — `projects/server/`
 
-Standalone Node.js ESM server (`"type": "module"`). Not part of the Angular workspace build — managed separately.
+Standalone **Bun** server (`"type": "module"`, `"packageManager": "bun@1.3.13"`). Not part of the Angular workspace build — managed separately with its own `package.json` and `tsconfig.json`.
 
 ```
 server/
-├── package.json             ← scripts: dev (--watch --experimental-strip-types), build (tsc), start
-├── tsconfig.json            ← target ES2022, module NodeNext, strict, outDir: dist/
+├── package.json             ← scripts: dev (bun --watch), build (bun build), start (bun src/main.ts), typecheck (tsc --noEmit)
+├── tsconfig.json            ← target ESNext, module ESNext, moduleResolution Bundler, strict, outDir: dist/
 └── src/
     ├── app.ts               ← creates Express app, registers global middleware + routes, exports default
     ├── main.ts              ← entry: app.listen() on process.env.PORT ?? 3000
@@ -180,9 +199,10 @@ server/
 
 | Script | Command |
 |---|---|
-| `dev` | `node --watch --experimental-strip-types src/main.ts` |
-| `build` | `tsc` → outputs to `dist/` |
-| `start` | `node dist/main.js` |
+| `dev` | `bun --watch src/main.ts` |
+| `build` | `bun build src/main.ts --outdir dist --target bun` |
+| `start` | `bun src/main.ts` |
+| `typecheck` | `tsc --noEmit` |
 
 ---
 
@@ -204,8 +224,9 @@ server/
 - SSR render mode set per route in `app.routes.server.ts`
 
 ### Library
-- All public exports go through `src/public-api.ts`
-- Import in app via `@my-lib` alias (requires `dist/my-lib` to exist — run `build:my-lib` first)
+- Angular exports go through `src/public-api.ts`; DTOs/models through the `my-lib/models` secondary entry
+- Import Angular code via `my-lib` or `@my-lib`; import models via `my-lib/models` or `@my-lib/models`
+- Both require `dist/my-lib` to exist — run `build:my-lib` first
 
 ### TypeScript
 - Strict mode enabled workspace-wide (`strict: true`, `noImplicitOverride`, `noImplicitReturns`)

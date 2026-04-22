@@ -19,6 +19,9 @@
           "options": {
             "browser": "projects/my-app/src/main.ts",
             "tsConfig": "projects/my-app/tsconfig.app.json",
+            "stylePreprocessorOptions": {
+              "includePaths": ["projects/my-app/src"]
+            },
             "assets": [
               {
                 "glob": "**/*",

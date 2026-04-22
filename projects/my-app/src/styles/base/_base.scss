@@ -1,5 +1,14 @@
 body {
-  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+// Every routed component host fills the remaining column space
+router-outlet + * {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 a:focus-visible,

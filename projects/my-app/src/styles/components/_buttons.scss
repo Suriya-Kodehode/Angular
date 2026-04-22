@@ -9,6 +9,7 @@
 //   .btn              — base layout, spacing, typography, cursor, transition
 //   .btn--primary     — primary colour variant (default)
 //   .btn--secondary   — secondary colour variant
+//   .btn--outline    — transparent background, primary-coloured border
 //   .btn--sm          — small size override
 //   .btn--md          — medium size (base padding, no override needed)
 //   .btn--lg          — large size override
@@ -22,12 +23,13 @@
   justify-content: center;
   gap: var(--spacing-xs);
   padding: var(--spacing-sm) var(--spacing-md);
-  border: none;
+  border: 2px solid transparent;
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: opacity var(--transition-fast), background-color var(--transition-fast);
+  text-decoration: none;
+  transition: opacity var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast);
 
   &:disabled {
     opacity: 0.5;
@@ -50,6 +52,16 @@
 
     &:hover:not(:disabled) {
       background-color: var(--color-secondary-hover);
+    }
+  }
+
+  &--outline {
+    background-color: transparent;
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+
+    &:hover:not(:disabled) {
+      background-color: var(--color-primary-container);
     }
   }
 

@@ -7,7 +7,7 @@
     "serve": "ng serve my-app",
     "serve:my-app": "ng serve my-app",
     "serve:project": "npm run ng -- serve",
-    "build": "ng build",
+    "build": "ng build my-app",
     "build:my-app": "ng build my-app",
     "build:my-lib": "ng build my-lib",
     "build:all": "npm run build:my-app && npm run build:my-lib",

@@ -26,7 +26,7 @@
               }
             ],
             "styles": [
-              "projects/my-app/src/styles.css"
+              "projects/my-app/src/styles.scss"
             ],
             "server": "projects/my-app/src/main.server.ts",
             "outputMode": "server",

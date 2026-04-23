@@ -36,11 +36,11 @@
 - Remote log shipping / server-side logging (out of scope).
 - Browser extension DevTools panel (out of scope).
 - Source-map stripping or build-time dead-code elimination of log calls (handled by Angular AOT / terser separately).
-- Wrapping native `console` methods beyond `log`, `warn`, `error`, `debug`, and `info` by default. Methods like `console.group`, `console.table`, `console.time`, `console.count`, `console.assert`, and `console.dir` are **opt-in only** — developers must explicitly request them. Do not add extra APIs unless asked.
+- Implementing optional console methods (`group`/`groupCollapsed`/`groupEnd`, `count`/`countReset`, `time`/`timeEnd`/`timeLog`, `table`, `dir`, `assert`) unless the developer **explicitly requests them**. The core five methods (`log`, `warn`, `error`, `debug`, `info`) are always included. Do not add optional APIs speculatively.
 
 ### Approach: Wrapper Service (Drop-in Replacement)
 
-`ConsoleService` exposes the same method signatures as `console` (`log`, `warn`, `error`, `debug`, `info`). After a one-time bootstrap patch in `AppComponent.ngOnInit()`, all `console.*` calls across the entire app — including third-party libraries — are automatically routed through the service. The `opts()` helper and the `always`/`never` pre-built constants provide clean syntax for per-call overrides at any call site with no injection required.
+`ConsoleService` wraps all 18 native `console` methods. After a one-time bootstrap patch in `App.ngOnInit()` via `patchConsole()`, all `console.*` calls across the entire app — including third-party libraries — are automatically routed through the service. The `opts()` helper and the `always`/`never` pre-built constants provide clean syntax for per-call overrides at any call site with no injection required.
 
 ---
 
@@ -74,6 +74,12 @@ src/
 ---
 
 ## Phase 1 — ConsoleService Core
+
+> **⚠️ Agent pre-flight — ask before implementing:**
+> Before writing any code, ask the developer:
+> *"Should the implementation include the optional console APIs — `group`/`groupCollapsed`/`groupEnd`, `count`/`countReset`, `time`/`timeEnd`/`timeLog`, `table`, `dir`, and `assert`? The core five (`log`, `warn`, `error`, `debug`, `info`) are always included. Optional APIs add ~60 lines and broader `patchConsole` coverage but may not be needed for every project."*
+>
+> Wait for confirmation before proceeding. If the developer confirms **all optional APIs**, implement the full 18-method version below. If they decline, implement only the 5-method version (omit the extra type aliases, `ScopedLogger` entries, `_native` bindings, public fields, `forContext` entries, and private helpers for the optional methods, and keep `patchConsole` to the core five).
 
 ### 1.1 Create `ConsoleService`
 
@@ -122,22 +128,61 @@ export const always: ConsoleCallOptions = opts({ force: true });
 /** Pre-built options object — pass as the first argument to permanently silence a call. */
 export const never:  ConsoleCallOptions = opts({ suppress: true });
 
-/** Names of the native console methods wrapped by ConsoleService. */
-type ConsoleMethodName = 'log' | 'warn' | 'error' | 'debug' | 'info';
+// ─── Internal type aliases ────────────────────────────────────────────────────
+type ConsoleMethodName      = 'log' | 'warn' | 'error' | 'debug' | 'info' | 'trace' | 'group' | 'groupCollapsed';
+type ConsoleLabelMethodName = 'count' | 'countReset' | 'time' | 'timeEnd';
+type ConsoleVoidMethodName  = 'groupEnd' | 'clear';
 
-/** Typed call signatures that ConsoleService methods must satisfy. */
+// ─── Public call signatures ───────────────────────────────────────────────────
 type ConsoleMethod = {
   (message?: unknown, ...optionalParams: unknown[]): void;
   (options: ConsoleCallOptions, message?: unknown, ...optionalParams: unknown[]): void;
 };
+type ConsoleLabelMethod = {
+  (label?: string): void;
+  (options: ConsoleCallOptions, label?: string): void;
+};
+type ConsoleTimeLabelMethod = {
+  (label?: string, ...data: unknown[]): void;
+  (options: ConsoleCallOptions, label?: string, ...data: unknown[]): void;
+};
+type ConsoleAssertMethod = {
+  (condition?: boolean, ...data: unknown[]): void;
+  (options: ConsoleCallOptions, condition?: boolean, ...data: unknown[]): void;
+};
+type ConsoleTableMethod = {
+  (tabularData?: unknown, properties?: string[]): void;
+  (options: ConsoleCallOptions, tabularData?: unknown, properties?: string[]): void;
+};
+type ConsoleDirMethod = {
+  (item?: unknown, dirOptions?: unknown): void;
+  (options: ConsoleCallOptions, item?: unknown, dirOptions?: unknown): void;
+};
+type ConsoleVoidMethod = {
+  (): void;
+  (options: ConsoleCallOptions): void;
+};
 
 /** A scoped logger bound to a context tag. Returned by `ConsoleService.forContext()`. */
 export interface ScopedLogger {
-  readonly log:   ConsoleMethod;
-  readonly warn:  ConsoleMethod;
-  readonly error: ConsoleMethod;
-  readonly debug: ConsoleMethod;
-  readonly info:  ConsoleMethod;
+  readonly log:            ConsoleMethod;
+  readonly warn:           ConsoleMethod;
+  readonly error:          ConsoleMethod;
+  readonly debug:          ConsoleMethod;
+  readonly info:           ConsoleMethod;
+  readonly trace:          ConsoleMethod;
+  readonly group:          ConsoleMethod;
+  readonly groupCollapsed: ConsoleMethod;
+  readonly count:          ConsoleLabelMethod;
+  readonly countReset:     ConsoleLabelMethod;
+  readonly time:           ConsoleLabelMethod;
+  readonly timeEnd:        ConsoleLabelMethod;
+  readonly timeLog:        ConsoleTimeLabelMethod;
+  readonly assert:         ConsoleAssertMethod;
+  readonly table:          ConsoleTableMethod;
+  readonly dir:            ConsoleDirMethod;
+  readonly groupEnd:       ConsoleVoidMethod;
+  readonly clear:          ConsoleVoidMethod;
 }
 
 /**
@@ -157,11 +202,24 @@ export function contextConsole(tag: string): ScopedLogger {
   let _logger: ScopedLogger | undefined;
   const get = (): ScopedLogger => (_logger ??= ConsoleService.instance.forContext(tag));
   return {
-    log:   (...args: unknown[]) => (get().log   as (...a: unknown[]) => void)(...args),
-    warn:  (...args: unknown[]) => (get().warn  as (...a: unknown[]) => void)(...args),
-    error: (...args: unknown[]) => (get().error as (...a: unknown[]) => void)(...args),
-    debug: (...args: unknown[]) => (get().debug as (...a: unknown[]) => void)(...args),
-    info:  (...args: unknown[]) => (get().info  as (...a: unknown[]) => void)(...args),
+    log:            (...args: unknown[]) => (get().log            as (...a: unknown[]) => void)(...args),
+    warn:           (...args: unknown[]) => (get().warn           as (...a: unknown[]) => void)(...args),
+    error:          (...args: unknown[]) => (get().error          as (...a: unknown[]) => void)(...args),
+    debug:          (...args: unknown[]) => (get().debug          as (...a: unknown[]) => void)(...args),
+    info:           (...args: unknown[]) => (get().info           as (...a: unknown[]) => void)(...args),
+    trace:          (...args: unknown[]) => (get().trace          as (...a: unknown[]) => void)(...args),
+    group:          (...args: unknown[]) => (get().group          as (...a: unknown[]) => void)(...args),
+    groupCollapsed: (...args: unknown[]) => (get().groupCollapsed as (...a: unknown[]) => void)(...args),
+    count:          (...args: unknown[]) => (get().count          as (...a: unknown[]) => void)(...args),
+    countReset:     (...args: unknown[]) => (get().countReset     as (...a: unknown[]) => void)(...args),
+    time:           (...args: unknown[]) => (get().time           as (...a: unknown[]) => void)(...args),
+    timeEnd:        (...args: unknown[]) => (get().timeEnd        as (...a: unknown[]) => void)(...args),
+    timeLog:        (...args: unknown[]) => (get().timeLog        as (...a: unknown[]) => void)(...args),
+    assert:         (...args: unknown[]) => (get().assert         as (...a: unknown[]) => void)(...args),
+    table:          (...args: unknown[]) => (get().table          as (...a: unknown[]) => void)(...args),
+    dir:            (...args: unknown[]) => (get().dir            as (...a: unknown[]) => void)(...args),
+    groupEnd:       (...args: unknown[]) => (get().groupEnd       as (...a: unknown[]) => void)(...args),
+    clear:          (...args: unknown[]) => (get().clear          as (...a: unknown[]) => void)(...args),
   } as ScopedLogger;
 }
 
@@ -202,20 +260,46 @@ export class ConsoleService {
    * `output()` must call these directly to avoid infinite recursion after patching.
    */
   private readonly _native = {
-    log:   console.log.bind(console),
-    warn:  console.warn.bind(console),
-    error: console.error.bind(console),
-    debug: console.debug.bind(console),
-    info:  console.info.bind(console),
+    log:            console.log.bind(console),
+    warn:           console.warn.bind(console),
+    error:          console.error.bind(console),
+    debug:          console.debug.bind(console),
+    info:           console.info.bind(console),
+    trace:          console.trace.bind(console),
+    group:          console.group.bind(console),
+    groupCollapsed: console.groupCollapsed.bind(console),
+    groupEnd:       console.groupEnd.bind(console),
+    clear:          console.clear.bind(console),
+    count:          console.count.bind(console),
+    countReset:     console.countReset.bind(console),
+    time:           console.time.bind(console),
+    timeEnd:        console.timeEnd.bind(console),
+    timeLog:        console.timeLog.bind(console),
+    assert:         console.assert.bind(console),
+    table:          console.table.bind(console),
+    dir:            console.dir.bind(console),
   } as const;
 
   // ─── Public API (mirrors native console) ──────────────────────────────────
 
-  readonly log:   ConsoleMethod = (...args: unknown[]) => this.output('log',   args);
-  readonly warn:  ConsoleMethod = (...args: unknown[]) => this.output('warn',  args);
-  readonly error: ConsoleMethod = (...args: unknown[]) => this.output('error', args);
-  readonly debug: ConsoleMethod = (...args: unknown[]) => this.output('debug', args);
-  readonly info:  ConsoleMethod = (...args: unknown[]) => this.output('info',  args);
+  readonly log:            ConsoleMethod          = (...args: unknown[]) => this.output('log',            args);
+  readonly warn:           ConsoleMethod          = (...args: unknown[]) => this.output('warn',           args);
+  readonly error:          ConsoleMethod          = (...args: unknown[]) => this.output('error',          args);
+  readonly debug:          ConsoleMethod          = (...args: unknown[]) => this.output('debug',          args);
+  readonly info:           ConsoleMethod          = (...args: unknown[]) => this.output('info',           args);
+  readonly trace:          ConsoleMethod          = (...args: unknown[]) => this.output('trace',          args);
+  readonly group:          ConsoleMethod          = (...args: unknown[]) => this.output('group',          args);
+  readonly groupCollapsed: ConsoleMethod          = (...args: unknown[]) => this.output('groupCollapsed', args);
+  readonly count:          ConsoleLabelMethod     = (...args: unknown[]) => this.labelOutput('count',      args);
+  readonly countReset:     ConsoleLabelMethod     = (...args: unknown[]) => this.labelOutput('countReset', args);
+  readonly time:           ConsoleLabelMethod     = (...args: unknown[]) => this.labelOutput('time',       args);
+  readonly timeEnd:        ConsoleLabelMethod     = (...args: unknown[]) => this.labelOutput('timeEnd',    args);
+  readonly timeLog:        ConsoleTimeLabelMethod = (...args: unknown[]) => this.timeLabelOutput(null,     args);
+  readonly assert:         ConsoleAssertMethod    = (...args: unknown[]) => this.assertOutput(null,        args);
+  readonly table:          ConsoleTableMethod     = (...args: unknown[]) => this.tableOutput(args);
+  readonly dir:            ConsoleDirMethod       = (...args: unknown[]) => this.dirOutput(args);
+  readonly groupEnd:       ConsoleVoidMethod      = (...args: unknown[]) => this.voidOutput('groupEnd',   args);
+  readonly clear:          ConsoleVoidMethod      = (...args: unknown[]) => this.voidOutput('clear',      args);
 
   /**
    * Returns a scoped logger that automatically prepends `[tag]` to every message.
@@ -228,46 +312,97 @@ export class ConsoleService {
   forContext(tag: string): ScopedLogger {
     const prefix = `[${tag}]`;
     return {
-      log:   (...args: unknown[]) => this.output('log',   this.prependTag(prefix, args)),
-      warn:  (...args: unknown[]) => this.output('warn',  this.prependTag(prefix, args)),
-      error: (...args: unknown[]) => this.output('error', this.prependTag(prefix, args)),
-      debug: (...args: unknown[]) => this.output('debug', this.prependTag(prefix, args)),
-      info:  (...args: unknown[]) => this.output('info',  this.prependTag(prefix, args)),
+      log:            (...args: unknown[]) => this.output('log',            this.prependTag(prefix, args)),
+      warn:           (...args: unknown[]) => this.output('warn',           this.prependTag(prefix, args)),
+      error:          (...args: unknown[]) => this.output('error',          this.prependTag(prefix, args)),
+      debug:          (...args: unknown[]) => this.output('debug',          this.prependTag(prefix, args)),
+      info:           (...args: unknown[]) => this.output('info',           this.prependTag(prefix, args)),
+      trace:          (...args: unknown[]) => this.output('trace',          this.prependTag(prefix, args)),
+      group:          (...args: unknown[]) => this.output('group',          this.prependTag(prefix, args)),
+      groupCollapsed: (...args: unknown[]) => this.output('groupCollapsed', this.prependTag(prefix, args)),
+      count:      (...args: unknown[]) => this.labelOutputCtx('count',      prefix, args),
+      countReset: (...args: unknown[]) => this.labelOutputCtx('countReset', prefix, args),
+      time:       (...args: unknown[]) => this.labelOutputCtx('time',       prefix, args),
+      timeEnd:    (...args: unknown[]) => this.labelOutputCtx('timeEnd',    prefix, args),
+      timeLog:    (...args: unknown[]) => this.timeLabelOutput(prefix, args),
+      assert:     (...args: unknown[]) => this.assertOutput(prefix, args),
+      table:      (...args: unknown[]) => this.tableOutput(args),
+      dir:        (...args: unknown[]) => this.dirOutput(args),
+      groupEnd:   (...args: unknown[]) => this.voidOutput('groupEnd', args),
+      clear:      (...args: unknown[]) => this.voidOutput('clear',    args),
     };
   }
 
   // ─── Private ──────────────────────────────────────────────────────────────
 
   /**
-   * Resolves visibility and delegates to the native console method.
-   *
-   * @param method  Native console method name.
-   * @param args    Raw argument list as passed by the caller.
+   * Extracts per-call options from `args` and evaluates the three visibility rules:
+   *   1. `suppress: true`  → always silent (wins over everything).
+   *   2. `force: true`     → always output (bypasses global toggle).
+   *   3. `enabled = false` → silent (no per-call override present).
+   * Returns `allowed` and the remaining args with the options object removed.
    */
-  private output(
-    method: ConsoleMethodName,
-    args: unknown[]
-  ): void {
+  private resolveCall(args: unknown[]): { allowed: boolean; rest: unknown[] } {
     const { options, rest } = this.extractOptions(args);
     const { force, suppress } = options ?? {};
+    return { allowed: !suppress && (!!force || this.enabled), rest };
+  }
 
-    // Rule 1 — per-call suppress wins over everything.
-    if (suppress) return;
+  private output(method: ConsoleMethodName, args: unknown[]): void {
+    const { allowed, rest } = this.resolveCall(args);
+    if (allowed) this._native[method](...rest);
+  }
 
-    // Rule 2 — per-call force bypasses global toggle.
-    if (!force && !this.enabled) return;
+  private labelOutput(method: ConsoleLabelMethodName, args: unknown[]): void {
+    const { allowed, rest } = this.resolveCall(args);
+    if (allowed) this._native[method](rest[0] as string | undefined);
+  }
 
-    this._native[method](...rest);
+  private labelOutputCtx(method: ConsoleLabelMethodName, prefix: string, args: unknown[]): void {
+    const { allowed, rest } = this.resolveCall(args);
+    if (!allowed) return;
+    const label = rest[0] as string | undefined;
+    this._native[method](label ? `${prefix} ${label}` : prefix);
+  }
+
+  private timeLabelOutput(prefix: string | null, args: unknown[]): void {
+    const { allowed, rest } = this.resolveCall(args);
+    if (!allowed) return;
+    const label = rest[0] as string | undefined;
+    const resolvedLabel = prefix ? (label ? `${prefix} ${label}` : prefix) : label;
+    this._native.timeLog(resolvedLabel, ...rest.slice(1));
+  }
+
+  private assertOutput(prefix: string | null, args: unknown[]): void {
+    const { allowed, rest } = this.resolveCall(args);
+    if (!allowed) return;
+    const [condition, ...data] = rest;
+    this._native.assert(
+      condition as boolean | undefined,
+      ...(prefix ? [prefix, ...data] : data)
+    );
+  }
+
+  private tableOutput(args: unknown[]): void {
+    const { allowed, rest } = this.resolveCall(args);
+    if (allowed) this._native.table(rest[0], rest[1] as string[] | undefined);
+  }
+
+  private dirOutput(args: unknown[]): void {
+    const { allowed, rest } = this.resolveCall(args);
+    if (allowed) this._native.dir(rest[0], rest[1]);
+  }
+
+  private voidOutput(method: ConsoleVoidMethodName, args: unknown[]): void {
+    const { allowed } = this.resolveCall(args);
+    if (allowed) this._native[method]();
   }
 
   /**
    * Checks whether the first argument is a `ConsoleCallOptions` object by verifying
    * the `CONSOLE_OPTIONS` Symbol marker, then separates it from the rest of the arguments.
    */
-  private extractOptions(args: unknown[]): {
-    options: ConsoleCallOptions | null;
-    rest: unknown[];
-  } {
+  private extractOptions(args: unknown[]): { options: ConsoleCallOptions | null; rest: unknown[] } {
     const first = args[0];
     if (first !== null && typeof first === 'object' && (first as Record<symbol, unknown>)[CONSOLE_OPTIONS] === true) {
       return { options: first as ConsoleCallOptions, rest: args.slice(1) };
@@ -275,9 +410,7 @@ export class ConsoleService {
     return { options: null, rest: args };
   }
 
-  /**
-   * Inserts the context prefix after any options object and before the first message argument.
-   */
+  /** Inserts the context prefix after any options object and before the first message argument. */
   private prependTag(prefix: string, args: unknown[]): unknown[] {
     const { options, rest } = this.extractOptions(args);
     return options ? [options, prefix, ...rest] : [prefix, ...rest];
@@ -285,7 +418,7 @@ export class ConsoleService {
 }
 ```
 
-**Deliverables**: ✔️ `ConsoleService` created, ✔️ All five `console` methods implemented, ✔️ Per-call override logic implemented, ✔️ `forContext()` scoped logger implemented, ✔️ `contextConsole()` export added, ✔️ `static instance` set in constructor, ✔️ No `any` types used
+**Deliverables**: ✔️ `ConsoleService` created, ✔️ All 18 `console` methods implemented, ✔️ Per-call override logic via `resolveCall()`, ✔️ `forContext()` scoped logger implemented, ✔️ `contextConsole()` export added, ✔️ `static instance` set in constructor, ✔️ No `any` types used
 
 ---
 
@@ -338,24 +471,25 @@ import { ConsoleService } from './console.service';
  */
 export function patchConsole(cs: ConsoleService): void {
   Object.assign(console, {
-    log: cs.log, warn: cs.warn, error: cs.error,
-    debug: cs.debug, info: cs.info,
-    // Add further methods only if explicitly requested.
+    log: cs.log, warn: cs.warn, error: cs.error, debug: cs.debug,
+    info: cs.info, trace: cs.trace, group: cs.group, groupCollapsed: cs.groupCollapsed,
+    groupEnd: cs.groupEnd, clear: cs.clear, count: cs.count, countReset: cs.countReset,
+    time: cs.time, timeEnd: cs.timeEnd, timeLog: cs.timeLog,
+    assert: cs.assert, table: cs.table, dir: cs.dir,
   });
 }
 ```
 
-**File**: `src/app/app.component.ts` — `[MODIFY]` 🔧
+**File**: `src/app/app.ts` — `[MODIFY]` 🔧
 
-Inject `ConsoleService`, import `patchConsole`, and call it at the top of `ngOnInit()`:
+Inject `ConsoleService` via `inject()`, import `patchConsole`, and call it at the top of `ngOnInit()`:
 
 ```typescript
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { patchConsole } from './services/console/console.patch';
 
-constructor(
-  // ...existing dependencies
-  private consoleService: ConsoleService
-) {}
+// Using inject() — no constructor needed:
+private readonly consoleService = inject(ConsoleService);
 
 ngOnInit(): void {
   patchConsole(this.consoleService);
@@ -382,7 +516,7 @@ this.consoleService.enabled = true;   // reveal all non-suppressed logs
 this.consoleService.enabled = false;  // silence all non-forced logs
 ```
 
-> **Ownership rule:** Only `AppComponent.ngOnInit()` should write to `enabled` on startup. Prefer `always` for individual critical calls rather than toggling the global flag — a global flip silences or reveals all logging across the entire app at once.
+> **Ownership rule:** Only `App.ngOnInit()` should write to `enabled` on startup. Prefer `always` for individual critical calls rather than toggling the global flag — a global flip silences or reveals all logging across the entire app at once.
 
 **Deliverables**: ✔️ Native `console` patched at bootstrap, ✔️ All call sites gated without per-file changes
 
@@ -418,6 +552,7 @@ console.warn('Rate limit approaching');
 console.error('Request failed', err);
 console.debug('Raw payload', response);
 console.info('App initialised');
+console.trace('Call stack trace');
 ```
 
 ---
@@ -487,6 +622,88 @@ console.log(never, 'Cache hit:', key);          // → silent
 
 ---
 
+### Groups *(Optional)*
+
+Use `group`/`groupCollapsed` to nest related logs. The indented block closes with `groupEnd()`. All three accept `always`/`never`.
+
+```typescript
+const console = contextConsole('DataService');
+
+console.group('[loadData]');
+console.log('Fetching page', page);
+console.log('Response size', items.length);
+console.groupEnd();
+
+// Force a group visible in production:
+console.group(always, '[loadData]');
+console.error(always, 'Request failed:', err);
+console.groupEnd(always);
+```
+
+---
+
+### Timers *(Optional)*
+
+`time`/`timeEnd`/`timeLog` accept an optional label. With `contextConsole`, the tag is prepended to the label automatically (`[ClassName] label`).
+
+```typescript
+const console = contextConsole('DataService');
+
+console.time('fetchAll');
+const data = await this.dataService.getAll();
+console.timeLog('fetchAll', 'items loaded:', data.length);  // → [DataService] fetchAll: 42ms items loaded: 100
+console.timeEnd('fetchAll');                                 // → [DataService] fetchAll: 87ms
+```
+
+---
+
+### Count *(Optional)*
+
+Increments a named counter each call. The counter persists in DevTools until `countReset()`. With `contextConsole`, the tag is prepended to the label.
+
+```typescript
+const console = contextConsole('CacheService');
+
+console.count('cache-hit');    // → [CacheService] cache-hit: 1
+console.count('cache-hit');    // → [CacheService] cache-hit: 2
+console.countReset('cache-hit');
+
+// Suppress noisy counter in dev:
+console.count(never, 'poll-tick');
+```
+
+---
+
+### Table & Dir *(Optional)*
+
+`table` displays array/object data as a formatted grid. `dir` renders an interactive object tree. Context prefix is **not** applied to either — they are data-display methods.
+
+```typescript
+console.table(users, ['id', 'name', 'role']);
+console.dir(this.config);
+
+// Suppress verbose data in dev:
+console.table(never, rawPayload);
+```
+
+---
+
+### Assert *(Optional)*
+
+Logs an error only when `condition` is false. With `contextConsole`, the tag is prepended to the data args.
+
+```typescript
+const console = contextConsole('AuthGuard');
+
+console.assert(user !== null, '[canActivate] user is null — redirecting');
+// → [AuthGuard] Assertion failed: [canActivate] user is null — redirecting
+
+// Force assert visible even in production:
+console.assert(always, isValid, '[validate] schema invalid:', errors);
+```
+
+---
+
 ### Quick Reference
 
 | Intent | Syntax |
@@ -495,6 +712,13 @@ console.log(never, 'Cache hit:', key);          // → silent
 | Always visible in prod | `console.error(always, 'msg', err)` |
 | Always silent, even in dev | `console.log(never, 'msg')` |
 | Tagged output (auto-prefixed) | `const console = contextConsole('ClassName')` (top of file), then `console.log('msg', data)` |
+| Group related logs *(optional)* | `console.group('[method]'); ... console.groupEnd();` |
+| Time an operation *(optional)* | `console.time('label'); ... console.timeEnd('label');` |
+| Time mid-operation *(optional)* | `console.timeLog('label', 'extra data')` |
+| Count invocations *(optional)* | `console.count('label')` / `console.countReset('label')` |
+| Display array as table *(optional)* | `console.table(arr, ['col1', 'col2'])` |
+| Display object tree *(optional)* | `console.dir(obj)` |
+| Assert a condition *(optional)* | `console.assert(condition, 'msg')` |
 | Enable all logging at runtime | `this.consoleService.enabled = true` |
 | Disable all logging at runtime | `this.consoleService.enabled = false` |
 

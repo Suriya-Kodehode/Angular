@@ -41,20 +41,42 @@ export const always: ConsoleCallOptions = opts({ force: true });
 export const never: ConsoleCallOptions = opts({ suppress: true });
 
 /** Names of the native console methods wrapped by ConsoleService. Routes through `output()` for force/suppress support. */
-type ConsoleMethodName = 'log' | 'warn' | 'error' | 'debug' | 'info' | 'trace' | 'group' | 'groupCollapsed';
+type ConsoleMethodName      = 'log' | 'warn' | 'error' | 'debug' | 'info' | 'trace' | 'group' | 'groupCollapsed';
+/** Names of label-based native methods routed through `labelOutput()`. */
+type ConsoleLabelMethodName = 'count' | 'countReset' | 'time' | 'timeEnd';
+/** Names of no-arg native methods routed through `voidOutput()`. */
+type ConsoleVoidMethodName  = 'groupEnd' | 'clear';
 
 /** Typed call signature for label-based methods: `count`, `countReset`, `time`, `timeEnd`. */
-type ConsoleLabelMethod      = (label?: string) => void;
+type ConsoleLabelMethod = {
+  (label?: string): void;
+  (options: ConsoleCallOptions, label?: string): void;
+};
 /** Typed call signature for `console.timeLog`. */
-type ConsoleTimeLabelMethod  = (label?: string, ...data: unknown[]) => void;
+type ConsoleTimeLabelMethod = {
+  (label?: string, ...data: unknown[]): void;
+  (options: ConsoleCallOptions, label?: string, ...data: unknown[]): void;
+};
 /** Typed call signature for `console.assert`. */
-type ConsoleAssertMethod     = (condition?: boolean, ...data: unknown[]) => void;
+type ConsoleAssertMethod = {
+  (condition?: boolean, ...data: unknown[]): void;
+  (options: ConsoleCallOptions, condition?: boolean, ...data: unknown[]): void;
+};
 /** Typed call signature for `console.table`. */
-type ConsoleTableMethod      = (tabularData?: unknown, properties?: string[]) => void;
+type ConsoleTableMethod = {
+  (tabularData?: unknown, properties?: string[]): void;
+  (options: ConsoleCallOptions, tabularData?: unknown, properties?: string[]): void;
+};
 /** Typed call signature for `console.dir`. */
-type ConsoleDirMethod        = (item?: unknown, options?: unknown) => void;
-/** Typed call signature for no-arg methods: `groupEnd`, `clear`. */
-type ConsoleVoidMethod       = () => void;
+type ConsoleDirMethod = {
+  (item?: unknown, dirOptions?: unknown): void;
+  (options: ConsoleCallOptions, item?: unknown, dirOptions?: unknown): void;
+};
+/** Typed call signature for no-arg methods: `groupEnd`, `clear`. Supports `always`/`never`. */
+type ConsoleVoidMethod = {
+  (): void;
+  (options: ConsoleCallOptions): void;
+};
 
 /** Typed call signatures that ConsoleService methods must satisfy. */
 type ConsoleMethod = {
@@ -119,16 +141,16 @@ export function contextConsole(tag: string): ScopedLogger {
     trace:          (...args: unknown[]) => (get().trace          as (...a: unknown[]) => void)(...args),
     group:          (...args: unknown[]) => (get().group          as (...a: unknown[]) => void)(...args),
     groupCollapsed: (...args: unknown[]) => (get().groupCollapsed as (...a: unknown[]) => void)(...args),
-    count:          (label)              => get().count(label),
-    countReset:     (label)              => get().countReset(label),
-    time:           (label)              => get().time(label),
-    timeEnd:        (label)              => get().timeEnd(label),
-    timeLog:        (label, ...data)     => get().timeLog(label, ...data),
-    assert:         (condition, ...data) => get().assert(condition, ...data),
-    table:          (tabularData, properties) => get().table(tabularData, properties),
-    dir:            (item, options)      => get().dir(item, options),
-    groupEnd:       ()                   => get().groupEnd(),
-    clear:          ()                   => get().clear(),
+    count:          (...args: unknown[]) => (get().count          as (...a: unknown[]) => void)(...args),
+    countReset:     (...args: unknown[]) => (get().countReset     as (...a: unknown[]) => void)(...args),
+    time:           (...args: unknown[]) => (get().time           as (...a: unknown[]) => void)(...args),
+    timeEnd:        (...args: unknown[]) => (get().timeEnd        as (...a: unknown[]) => void)(...args),
+    timeLog:        (...args: unknown[]) => (get().timeLog        as (...a: unknown[]) => void)(...args),
+    assert:         (...args: unknown[]) => (get().assert         as (...a: unknown[]) => void)(...args),
+    table:          (...args: unknown[]) => (get().table          as (...a: unknown[]) => void)(...args),
+    dir:            (...args: unknown[]) => (get().dir            as (...a: unknown[]) => void)(...args),
+    groupEnd:       (...args: unknown[]) => (get().groupEnd       as (...a: unknown[]) => void)(...args),
+    clear:          (...args: unknown[]) => (get().clear          as (...a: unknown[]) => void)(...args),
   } as ScopedLogger;
 }
 
@@ -199,26 +221,26 @@ export class ConsoleService {
   readonly trace:          ConsoleMethod          = (...args: unknown[]) => this.output('trace',          args);
   readonly group:          ConsoleMethod          = (...args: unknown[]) => this.output('group',          args);
   readonly groupCollapsed: ConsoleMethod          = (...args: unknown[]) => this.output('groupCollapsed', args);
-  /** Increments a named counter. Repeated calls update the same line in DevTools. Gated by `enabled`. */
-  readonly count:          ConsoleLabelMethod     = (label)              => { if (this.enabled) this._native.count(label); };
-  /** Resets the named counter to zero. Gated by `enabled`. */
-  readonly countReset:     ConsoleLabelMethod     = (label)              => { if (this.enabled) this._native.countReset(label); };
-  /** Starts a named timer. Gated by `enabled`. */
-  readonly time:           ConsoleLabelMethod     = (label)              => { if (this.enabled) this._native.time(label); };
-  /** Stops the named timer and logs elapsed ms. Gated by `enabled`. */
-  readonly timeEnd:        ConsoleLabelMethod     = (label)              => { if (this.enabled) this._native.timeEnd(label); };
-  /** Logs the current value of the named timer without stopping it. Gated by `enabled`. */
-  readonly timeLog:        ConsoleTimeLabelMethod = (label, ...data)     => { if (this.enabled) this._native.timeLog(label, ...data); };
-  /** Logs an error if `condition` is false. Gated by `enabled`. */
-  readonly assert:         ConsoleAssertMethod    = (condition, ...data) => { if (this.enabled) this._native.assert(condition, ...data); };
-  /** Displays tabular data as a table. Gated by `enabled`. */
-  readonly table:          ConsoleTableMethod     = (tabularData, properties) => { if (this.enabled) this._native.table(tabularData, properties); };
-  /** Displays an interactive object listing. Gated by `enabled`. */
-  readonly dir:            ConsoleDirMethod       = (item, options)      => { if (this.enabled) this._native.dir(item, options); };
-  /** Closes the current inline group. Gated by `enabled`. */
-  readonly groupEnd:       ConsoleVoidMethod      = ()                   => { if (this.enabled) this._native.groupEnd(); };
-  /** Clears the console. Gated by `enabled`. */
-  readonly clear:          ConsoleVoidMethod      = ()                   => { if (this.enabled) this._native.clear(); };
+  /** Increments a named counter. Repeated calls update the same line in DevTools. Supports `always`/`never`. */
+  readonly count:      ConsoleLabelMethod     = (...args: unknown[]) => this.labelOutput('count',      args);
+  /** Resets the named counter to zero. Supports `always`/`never`. */
+  readonly countReset: ConsoleLabelMethod     = (...args: unknown[]) => this.labelOutput('countReset', args);
+  /** Starts a named timer. Supports `always`/`never`. */
+  readonly time:       ConsoleLabelMethod     = (...args: unknown[]) => this.labelOutput('time',       args);
+  /** Stops the named timer and logs elapsed ms. Supports `always`/`never`. */
+  readonly timeEnd:    ConsoleLabelMethod     = (...args: unknown[]) => this.labelOutput('timeEnd',    args);
+  /** Logs the current value of the named timer without stopping it. Supports `always`/`never`. */
+  readonly timeLog:    ConsoleTimeLabelMethod = (...args: unknown[]) => this.timeLabelOutput(null,     args);
+  /** Logs an error if `condition` is false. Supports `always`/`never`. */
+  readonly assert:   ConsoleAssertMethod = (...args: unknown[]) => this.assertOutput(null,     args);
+  /** Displays tabular data as a table. Supports `always`/`never`. */
+  readonly table:    ConsoleTableMethod  = (...args: unknown[]) => this.tableOutput(args);
+  /** Displays an interactive object listing. Supports `always`/`never`. */
+  readonly dir:      ConsoleDirMethod    = (...args: unknown[]) => this.dirOutput(args);
+  /** Closes the current inline group. Supports `always`/`never`. */
+  readonly groupEnd: ConsoleVoidMethod   = (...args: unknown[]) => this.voidOutput('groupEnd', args);
+  /** Clears the console. Supports `always`/`never`. */
+  readonly clear:    ConsoleVoidMethod   = (...args: unknown[]) => this.voidOutput('clear',    args);
 
   /**
    * Returns a scoped logger that automatically prepends `[tag]` to every message.
@@ -239,38 +261,88 @@ export class ConsoleService {
       trace:          (...args: unknown[]) => this.output('trace',          this.prependTag(prefix, args)),
       group:          (...args: unknown[]) => this.output('group',          this.prependTag(prefix, args)),
       groupCollapsed: (...args: unknown[]) => this.output('groupCollapsed', this.prependTag(prefix, args)),
-      count:          (label) => { if (this.enabled) this._native.count(label          ? `${prefix} ${label}` : prefix); },
-      countReset:     (label) => { if (this.enabled) this._native.countReset(label     ? `${prefix} ${label}` : prefix); },
-      time:           (label) => { if (this.enabled) this._native.time(label           ? `${prefix} ${label}` : prefix); },
-      timeEnd:        (label) => { if (this.enabled) this._native.timeEnd(label        ? `${prefix} ${label}` : prefix); },
-      timeLog:        (label, ...data) => { if (this.enabled) this._native.timeLog(label ? `${prefix} ${label}` : prefix, ...data); },
-      assert:         (condition, ...data) => { if (this.enabled) this._native.assert(condition, prefix, ...data); },
-      table:          (tabularData, properties) => { if (this.enabled) this._native.table(tabularData, properties); },
-      dir:            (item, options) => { if (this.enabled) this._native.dir(item, options); },
-      groupEnd:       () => { if (this.enabled) this._native.groupEnd(); },
-      clear:          () => { if (this.enabled) this._native.clear(); },
+      count:      (...args: unknown[]) => this.labelOutputCtx('count',      prefix, args),
+      countReset: (...args: unknown[]) => this.labelOutputCtx('countReset', prefix, args),
+      time:       (...args: unknown[]) => this.labelOutputCtx('time',       prefix, args),
+      timeEnd:    (...args: unknown[]) => this.labelOutputCtx('timeEnd',    prefix, args),
+      timeLog:    (...args: unknown[]) => this.timeLabelOutput(prefix, args),
+      assert:   (...args: unknown[]) => this.assertOutput(prefix, args),
+      table:    (...args: unknown[]) => this.tableOutput(args),
+      dir:      (...args: unknown[]) => this.dirOutput(args),
+      groupEnd: (...args: unknown[]) => this.voidOutput('groupEnd', args),
+      clear:    (...args: unknown[]) => this.voidOutput('clear',    args),
     };
   }
 
   // ─── Private ──────────────────────────────────────────────────────────────
 
   /**
-   * Resolves visibility and delegates to the native console method.
-   *
-   * @param method  Native console method name.
-   * @param args    Raw argument list as passed by the caller.
+   * Extracts per-call options from `args` and evaluates the three visibility rules:
+   *   1. `suppress: true`  → always silent (wins over everything).
+   *   2. `force: true`     → always output (bypasses global toggle).
+   *   3. `enabled = false` → silent (no per-call override present).
+   * Returns `allowed` and the remaining args with the options object removed.
    */
-  private output(method: ConsoleMethodName, args: unknown[]): void {
+  private resolveCall(args: unknown[]): { allowed: boolean; rest: unknown[] } {
     const { options, rest } = this.extractOptions(args);
     const { force, suppress } = options ?? {};
+    return { allowed: !suppress && (!!force || this.enabled), rest };
+  }
 
-    // Rule 1 — per-call suppress wins over everything.
-    if (suppress) return;
+  /** Delegates to the named native method when `resolveCall` permits. */
+  private output(method: ConsoleMethodName, args: unknown[]): void {
+    const { allowed, rest } = this.resolveCall(args);
+    if (allowed) this._native[method](...rest);
+  }
 
-    // Rule 2 — per-call force bypasses global toggle.
-    if (!force && !this.enabled) return;
+  /** `count`/`countReset`/`time`/`timeEnd` — strips options then passes the label. */
+  private labelOutput(method: ConsoleLabelMethodName, args: unknown[]): void {
+    const { allowed, rest } = this.resolveCall(args);
+    if (allowed) this._native[method](rest[0] as string | undefined);
+  }
 
-    this._native[method](...rest);
+  /** Context-scoped `labelOutput` — prepends `prefix` to the label. */
+  private labelOutputCtx(method: ConsoleLabelMethodName, prefix: string, args: unknown[]): void {
+    const { allowed, rest } = this.resolveCall(args);
+    if (!allowed) return;
+    const label = rest[0] as string | undefined;
+    this._native[method](label ? `${prefix} ${label}` : prefix);
+  }
+
+  /** `timeLog` — optionally prepends `prefix` to the label when context-scoped. */
+  private timeLabelOutput(prefix: string | null, args: unknown[]): void {
+    const { allowed, rest } = this.resolveCall(args);
+    if (!allowed) return;
+    const label = rest[0] as string | undefined;
+    const resolvedLabel = prefix ? (label ? `${prefix} ${label}` : prefix) : label;
+    this._native.timeLog(resolvedLabel, ...rest.slice(1));
+  }
+
+  /** `assert` — optionally prepends `prefix` to the message when context-scoped. */
+  private assertOutput(prefix: string | null, args: unknown[]): void {
+    const { allowed, rest } = this.resolveCall(args);
+    if (!allowed) return;
+    const condition = rest[0] as boolean | undefined;
+    const data = rest.slice(1);
+    this._native.assert(condition, ...(prefix ? [prefix, ...data] : data));
+  }
+
+  /** `table` — strips options then passes tabularData and properties. */
+  private tableOutput(args: unknown[]): void {
+    const { allowed, rest } = this.resolveCall(args);
+    if (allowed) this._native.table(rest[0], rest[1] as string[] | undefined);
+  }
+
+  /** `dir` — strips options then passes item and dirOptions. */
+  private dirOutput(args: unknown[]): void {
+    const { allowed, rest } = this.resolveCall(args);
+    if (allowed) this._native.dir(rest[0], rest[1]);
+  }
+
+  /** `groupEnd`/`clear` — no-arg call, only checks visibility. */
+  private voidOutput(method: ConsoleVoidMethodName, args: unknown[]): void {
+    const { allowed } = this.resolveCall(args);
+    if (allowed) this._native[method]();
   }
 
   /**

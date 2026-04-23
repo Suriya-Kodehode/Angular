@@ -103,15 +103,14 @@ console.log('[methodName] label:', value);
 
 ## Available Methods
 
-### Force/suppress support (`always`/`never`/`opts()` accepted as first arg)
+All methods accept `always`, `never`, or `opts()` as an optional first argument.
+
 | Method | Notes |
 |--------|-------|
 | `log`, `warn`, `error`, `debug`, `info`, `trace` | Standard output |
 | `group(label?)`, `groupCollapsed(label?)` | Opens a collapsible group |
-
-### Gated by `enabled` (no force/suppress)
-| Method | Signature |
-|--------|----------|
+| `groupEnd()` | Closes current group |
+| `clear()` | Clears the console |
 | `count(label?)` | Increments named counter |
 | `countReset(label?)` | Resets named counter |
 | `time(label?)` | Starts named timer |
@@ -120,10 +119,8 @@ console.log('[methodName] label:', value);
 | `assert(condition?, ...data)` | Logs error if `condition` is false |
 | `table(tabularData?, properties?)` | Tabular display |
 | `dir(item?, options?)` | Interactive object listing |
-| `groupEnd()` | Closes current group |
-| `clear()` | Clears the console |
 
-In `forContext()` / `contextConsole()`, label methods (`count`, `countReset`, `time`, `timeEnd`, `timeLog`) automatically prepend the tag to the label.
+In `contextConsole()`, label methods (`count`, `countReset`, `time`, `timeEnd`, `timeLog`) automatically prepend the tag to the label.
 
 ---
 

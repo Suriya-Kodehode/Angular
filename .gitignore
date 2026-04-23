@@ -15,6 +15,11 @@ yarn-error.log
 /projects/server/dist
 /projects/server/node_modules
 
+# Environment files — never commit real secrets
+.env
+.env.*
+!.env.example
+
 # IDEs and editors
 .idea/
 .project

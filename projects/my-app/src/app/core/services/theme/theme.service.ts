@@ -2,6 +2,7 @@ import { Injectable, inject, PLATFORM_ID, effect, signal } from '@angular/core';
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import type { ThemePalette, ThemeMode } from './theme.model';
 
+
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly doc = inject(DOCUMENT);

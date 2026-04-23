@@ -1,5 +1,8 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { contextConsole } from '@app/core/services/console/console.service';
+
+const console = contextConsole('HomeComponent');
 
 @Component({
   selector: 'app-home',
@@ -8,4 +11,8 @@ import { RouterLink } from '@angular/router';
   styleUrl: './home.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomeComponent {}
+export class HomeComponent {
+  logCount(): void {
+    console.count('[logCount]');
+  }
+}

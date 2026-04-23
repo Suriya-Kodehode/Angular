@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  enableLogging: true,  // set to false to globally silence all logger calls in dev
+  enableConsole: true,  // set to false to globally silence all console output in dev
 };

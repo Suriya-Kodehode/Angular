@@ -7,7 +7,6 @@
 // export { DATE_FORMAT } from './constants/app.constants';
 // export { SpinnerComponent } from './components/spinner/spinner.component';
 
-export { logger } from './utils/console';
 export { ButtonComponent } from './components/button/button.component';
 export type { ButtonVariant, ButtonSize, ButtonType } from './components/button/button.component';
 export { NavbarComponent } from './components/navbar/navbar.component';

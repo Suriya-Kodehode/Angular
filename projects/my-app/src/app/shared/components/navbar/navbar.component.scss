@@ -6,6 +6,41 @@
   padding: 0 1.5rem;
   height: 3.5rem;
 
+  &__start {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  &__menu-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    display: block;
+    background-color: currentColor;
+    mask-image: var(--icon-url);
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    -webkit-mask-image: var(--icon-url);
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+  }
+
   &__brand {
     font-weight: var(--font-weight-bold);
     font-size: var(--font-size-lg);

@@ -1,5 +1,18 @@
 <nav class="navbar">
-  <a class="navbar__brand" routerLink="/">MyApp</a>
+  <div class="navbar__start">
+    <button
+      class="navbar__menu-button"
+      type="button"
+      aria-label="Open navigation menu"
+    >
+      <span
+        class="navbar__menu-icon"
+        aria-hidden="true"
+        [adaptSvg]="menuIconVm"
+      ></span>
+    </button>
+    <a class="navbar__brand" routerLink="/">MyApp</a>
+  </div>
   <ul class="navbar__links">
     <li><a routerLink="/auth/login">Login</a></li>
     <li><a routerLink="/auth/register">Register</a></li>

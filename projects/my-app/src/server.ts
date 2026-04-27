@@ -4,25 +4,89 @@ import {
   isMainModule,
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
+import type { Request, Response } from 'express';
 import express from 'express';
 import { join } from 'node:path';
+import { API_PREFIX, API_PREFIX_REGEX } from './app/shared/constants/regex.constants';
+
+interface ApiProxyConfig {
+  apiBaseUrl: string;
+  allowedMethods: string;
+  allowedHeaders: string;
+}
+
+interface ProxyRequest {
+  targetUrl: URL;
+  headers: Headers;
+  body?: Buffer;
+}
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
+const proxyConfig: ApiProxyConfig = {
+  apiBaseUrl: process.env['API_BASE_URL'] ?? 'http://localhost:3000',
+  allowedMethods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+  allowedHeaders: 'Content-Type, Authorization',
+};
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
-/**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/{*splat}', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
+function getForwardHeaders(req: Request): Headers {
+  const headers = new Headers();
+
+  for (const [key, value] of Object.entries(req.headers)) {
+    if (!value || key.toLowerCase() === 'host') {
+      continue;
+    }
+
+    headers.set(key, Array.isArray(value) ? value.join(',') : value);
+  }
+
+  return headers;
+}
+
+async function readRawBody(req: Request): Promise<Buffer | undefined> {
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+    return undefined;
+  }
+
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+
+  return chunks.length ? Buffer.concat(chunks) : undefined;
+}
+
+app.all(`${API_PREFIX}/{*splat}`, async (req, res, next) => {
+  try {
+    const body = await readRawBody(req);
+    const proxyRequest: ProxyRequest = {
+      targetUrl: new URL(req.originalUrl.replace(API_PREFIX_REGEX, '') || '/', proxyConfig.apiBaseUrl),
+      headers: getForwardHeaders(req),
+      body,
+    };
+
+    const upstream = await fetch(proxyRequest.targetUrl, {
+      method: req.method,
+      headers: proxyRequest.headers,
+      body: proxyRequest.body as BodyInit | undefined,
+    });
+
+    upstream.headers.forEach((value, key) => {
+      const normalized = key.toLowerCase();
+      if (normalized === 'connection' || normalized === 'transfer-encoding') {
+        return;
+      }
+
+      res.setHeader(key, value);
+    });
+
+    res.status(upstream.status).send(Buffer.from(await upstream.arrayBuffer()));
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * Serve static files from /browser

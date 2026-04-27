@@ -1,5 +1,35 @@
 :host {
-  flex: 1;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-shell__body {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1rem;
+  flex: 1;
+  // padding: 1rem;
+}
+
+.app-shell__content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  // padding: 1rem;
+}
+
+@media (max-width: 900px) {
+  .app-shell__body {
+    grid-template-columns: 1fr;
+  }
 }

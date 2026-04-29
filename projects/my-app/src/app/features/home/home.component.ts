@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { contextConsole } from '@app/core/services/console/console.service';
+import { contextConsole } from '@app/core/services';
 
 const console = contextConsole('HomeComponent');
 

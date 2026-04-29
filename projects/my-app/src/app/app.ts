@@ -2,8 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/cor
 import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
-import { ConsoleService } from './core/services/console/console.service';
-import { patchConsole } from './core/services/console/console.patch';
+import { ConsoleService, patchConsole } from '@app/core/services';
 
 @Component({
   selector: 'app-root',

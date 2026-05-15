@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { APP_ICONS } from '../../constants/icons';
 import { AdaptSvgDirective, type AdaptiveSvgIconVm } from '../../directives/adapt-svg.directive';
@@ -12,10 +12,15 @@ import { getAdaptiveSvgColorVar } from '../../utils/adaptive-svg-color.util';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavbarComponent {
-  private readonly menuIconDef = APP_ICONS.hamburger;
+  readonly sidebarExpanded = input<boolean>(false);
+  readonly toggleSidebar = output<void>();
 
   protected readonly menuIconVm: AdaptiveSvgIconVm = {
-    src: this.menuIconDef.src,
-    colorVar: getAdaptiveSvgColorVar(this.menuIconDef),
+    src: APP_ICONS.hamburger.src,
+    colorVar: getAdaptiveSvgColorVar(APP_ICONS.hamburger),
   };
+
+  onMenuClick(): void {
+    this.toggleSidebar.emit();
+  }
 }

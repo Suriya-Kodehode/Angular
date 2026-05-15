@@ -18,6 +18,10 @@
   // padding: 1rem;
 }
 
+.app-shell__body.sidebar--shrink {
+  grid-template-columns: 80px 1fr;
+}
+
 .app-shell__content {
   display: flex;
   flex-direction: column;
@@ -29,7 +33,13 @@
 }
 
 @media (max-width: 900px) {
-  .app-shell__body {
-    grid-template-columns: 1fr;
+  .navbar__menu-button {
+    display: none;
+  }
+
+  .app-shell__body,
+  .app-shell__body.sidebar--expanded,
+  .app-shell__body.sidebar--shrink {
+    grid-template-columns: 80px 1fr;
   }
 }

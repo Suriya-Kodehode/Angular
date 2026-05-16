@@ -2,14 +2,13 @@ import { Directive, input } from '@angular/core';
 
 export type AdaptiveSvgIconVm = {
   src: string;
-  colorVar: string;
+  colorVar?: string;
 };
 
 @Directive({
   selector: '[adaptSvg]',
   standalone: true,
   host: {
-    '[style.color]': 'adaptSvg().colorVar',
     '[style.--icon-url]': 'iconUrl()',
   },
 })

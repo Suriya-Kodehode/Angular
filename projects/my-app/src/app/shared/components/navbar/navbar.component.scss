@@ -17,28 +17,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    padding: 0;
     color: inherit;
     cursor: pointer;
     transition: background-color var(--transition-fast), transform var(--transition-fast);
-
-    // Ensure the inner app-button content fills the navbar toggle
-    ::ng-deep .btn {
-      width: 100%;
-      height: 100%;
-      padding: 0;
-      border: 0;
-      background-color: transparent;
-      color: inherit;
-      box-shadow: none;
-    }
-
-    // Normal hover state for transparent menu button
-    &:hover ::ng-deep .btn:not(.btn--no-hover):not(:disabled) {
-      background-color: var(--color-transparent-hover);
-    }
 
     // Expanded sidebar state: clearly visible active color
     &.is-expanded ::ng-deep .btn {

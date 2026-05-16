@@ -3,7 +3,7 @@
     <app-button
       class="navbar__menu-button"
       [class.is-expanded]="sidebarExpanded()"
-      variant="transparent"
+      variant="icon"
       type="button"
       [hover]="true"
       [attr.aria-label]="sidebarExpanded() ? 'Close sidebar' : 'Open sidebar'"
@@ -21,5 +21,15 @@
   <ul class="navbar__links">
     <li><a routerLink="/auth/login">Login</a></li>
     <li><a routerLink="/auth/register">Register</a></li>
+    <li class="navbar__more">
+      <app-button
+        variant="icon"
+        type="button"
+        [hover]="true"
+        aria-label="More options"
+      >
+        ⋮
+      </app-button>
+    </li>
   </ul>
 </nav>

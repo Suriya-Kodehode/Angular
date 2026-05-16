@@ -3,9 +3,15 @@
     <h1 class="home__title">Welcome to MyApp</h1>
     <p class="home__subtitle">A modern Angular starter with theming, SSR, and a clean architecture.</p>
     <div class="home__actions">
-      <a class="btn btn--primary" routerLink="/auth/register">Get started</a>
-      <a class="btn btn--outline" routerLink="/auth/login">Sign in</a>
-      <button class="btn btn--outline" type="button" (click)="logCount()">Console test</button>
+      <app-button color="primary" variant="fill" size="md" type="button" routerLink="/auth/register">
+        Get started
+      </app-button>
+      <app-button color="primary" variant="outline" size="md" type="button" routerLink="/auth/login">
+        Sign in
+      </app-button>
+      <app-button color="primary" variant="outline" size="md" type="button" (click)="logCount()">
+        Console test
+      </app-button>
     </div>
   </section>
 </main>

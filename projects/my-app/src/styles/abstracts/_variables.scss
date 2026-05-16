@@ -183,6 +183,7 @@ $breakpoints: (
   --color-primary-container:    var(--blue-100);   // tinted bg — chips, cards, badges
   --color-primary-on-container: var(--blue-900);   // text/icon on primary-container
   --color-primary-hover:        var(--blue-900);
+  --color-transparent-hover:    var(--black-100);   // transparent button hover overlay
 
   // Secondary (gray-based — update when you define a second brand color)
   --color-secondary:              var(--gray-200);  // fill — secondary button bg

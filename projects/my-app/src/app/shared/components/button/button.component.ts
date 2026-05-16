@@ -5,11 +5,12 @@ import {
   input,
 } from '@angular/core';
 
-export type ButtonVariant = 'primary' | 'secondary';
+export type ButtonVariant = 'primary' | 'secondary' | 'transparent';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 export type ButtonType = 'button' | 'submit' | 'reset';
 
 @Component({
+  standalone: true,
   selector: 'app-button',
   templateUrl: './button.component.html',
   styleUrl: './button.component.scss',
@@ -21,10 +22,12 @@ export class ButtonComponent {
   readonly type = input<ButtonType>('button');
   readonly loading = input<boolean>(false);
   readonly disabled = input<boolean>(false);
+  readonly hover = input<boolean>(true);
 
   protected readonly isDisabled = computed(() => this.disabled() || this.loading());
 
-  protected readonly btnClass = computed(
-    () => `btn btn--${this.variant()} btn--${this.size()}`,
-  );
+  protected readonly btnClass = computed(() => {
+    const base = `btn btn--${this.variant()} btn--${this.size()}`;
+    return this.hover() ? base : `${base} btn--no-hover`;
+  });
 }

@@ -10,7 +10,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1.5rem;
   }
 
   &__menu-button {
@@ -20,10 +20,36 @@
     width: 2rem;
     height: 2rem;
     padding: 0;
-    border: 0;
-    background: transparent;
     color: inherit;
     cursor: pointer;
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
+
+    // Ensure the inner app-button content fills the navbar toggle
+    ::ng-deep .btn {
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      background-color: transparent;
+      color: inherit;
+      box-shadow: none;
+    }
+
+    // Normal hover state for transparent menu button
+    &:hover ::ng-deep .btn:not(.btn--no-hover):not(:disabled) {
+      background-color: var(--color-transparent-hover);
+    }
+
+    // Expanded sidebar state: clearly visible active color
+    &.is-expanded ::ng-deep .btn {
+      background-color: var(--color-primary);
+      color: var(--color-on-primary);
+    }
+
+    // Hover state while expanded
+    &.is-expanded:hover ::ng-deep .btn:not(:disabled) {
+      background-color: var(--color-primary-hover);
+    }
   }
 
   &__menu-icon {

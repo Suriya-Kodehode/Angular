@@ -2,11 +2,12 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { RouterLink } from '@angular/router';
 import { APP_ICONS } from '../../constants/icons';
 import { AdaptSvgDirective, type AdaptiveSvgIconVm } from '../../directives/adapt-svg.directive';
+import { ButtonComponent } from '../button/button.component';
 import { getAdaptiveSvgColorVar } from '../../utils/adaptive-svg-color.util';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, AdaptSvgDirective],
+  imports: [RouterLink, AdaptSvgDirective, ButtonComponent],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

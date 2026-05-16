@@ -1,8 +1,11 @@
 <nav class="navbar">
   <div class="navbar__start">
-    <button
+    <app-button
       class="navbar__menu-button"
+      [class.is-expanded]="sidebarExpanded()"
+      variant="transparent"
       type="button"
+      [hover]="true"
       [attr.aria-label]="sidebarExpanded() ? 'Close sidebar' : 'Open sidebar'"
       [attr.aria-expanded]="sidebarExpanded()"
       (click)="onMenuClick()"
@@ -12,7 +15,7 @@
         aria-hidden="true"
         [adaptSvg]="menuIconVm"
       ></span>
-    </button>
+    </app-button>
     <a class="navbar__brand" routerLink="/">MyApp</a>
   </div>
   <ul class="navbar__links">

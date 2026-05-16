@@ -16,10 +16,14 @@ These guidelines explain how to consume the shared `ButtonComponent` and how to 
 Use the component as a drop-in button wrapper.
 
 ```html
-<app-button variant="primary">Primary action</app-button>
-<app-button variant="secondary">Secondary action</app-button>
+<app-button color="primary" variant="fill">Primary action</app-button>
+<app-button color="secondary" variant="outline">Secondary action</app-button>
+<app-button variant="transparent">Ghost action</app-button>
+<app-button variant="icon">Icon action</app-button>
+<app-button size="xs">Extra small button</app-button>
 <app-button size="sm">Small button</app-button>
 <app-button size="lg">Large button</app-button>
+<app-button size="xl">Extra large button</app-button>
 <app-button type="submit">Submit</app-button>
 ```
 
@@ -27,18 +31,25 @@ Use the component as a drop-in button wrapper.
 
 This implementation includes optional hover behavior via the `hover` input. The default is `true`, so hover is enabled unless explicitly disabled.
 
-- `variant: 'primary' | 'secondary' | 'transparent'`
-- `size: 'sm' | 'md' | 'lg'`
+- `color: 'primary' | 'secondary'`
+- `variant: 'fill' | 'outline' | 'transparent' | 'icon'`
+- `size: 'xs' | 'sm' | 'md' | 'lg' | 'xl'`
 - `type: 'button' | 'submit' | 'reset'`
 - `loading: boolean`
 - `disabled: boolean`
 - `hover: boolean` (default `true`, opt-in/out modifier)
 
+Notes:
+
+- The `icon` variant is intended for icon-only buttons and defaults to the theme text color.
+- SVG icons should use `currentColor` so they inherit the button’s foreground color.
+
 ### Example
 
 ```html
 <app-button
-  variant="primary"
+  color="primary"
+  variant="fill"
   size="md"
   [loading]="isSaving"
   [disabled]="isFormInvalid"
@@ -79,7 +90,7 @@ If adding a `shadow` opt-out feature:
 readonly shadow = input<boolean>(true);
 
 protected readonly btnClass = computed(() => {
-  const base = `btn btn--${this.variant()} btn--${this.size()}`;
+  const base = `btn btn--${this.color()} btn--${this.variant()} btn--${this.size()}`;
   const noHover = this.hover() ? '' : ' btn--no-hover';
   const noShadow = this.shadow() ? '' : ' btn--no-shadow';
   return `${base}${noHover}${noShadow}`.trim();

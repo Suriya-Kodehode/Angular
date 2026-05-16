@@ -7,12 +7,17 @@
 //
 // Class composition (set by ButtonComponent.btnClass()):
 //   .btn              — base layout, spacing, typography, cursor, transition
-//   .btn--primary     — primary colour variant (default)
-//   .btn--secondary   — secondary colour variant
-//   .btn--outline    — transparent background, primary-coloured border
+//   .btn--primary     — primary colour theme
+//   .btn--secondary   — secondary colour theme
+//   .btn--fill        — filled button variant (default)
+//   .btn--outline     — outlined button variant
+//   .btn--transparent — transparent button variant
+//   .btn--icon        — icon button with tighter padding and circular shape
+//   .btn--xs          — extra-small button
 //   .btn--sm          — small size override
 //   .btn--md          — medium size (base padding, no override needed)
 //   .btn--lg          — large size override
+//   .btn--xl          — extra-large button
 //
 // Spinner styles (.btn__spinner) live in button.component.scss,
 // not here, because they are internal to the ButtonComponent template.
@@ -36,38 +41,46 @@
     cursor: not-allowed;
   }
 
-  // Variants
+  // Color themes
   &--primary {
-    background-color: var(--color-primary);
-    color: var(--color-on-primary);
-
-    &:hover:not(:disabled) {
-      background-color: var(--color-primary-hover);
-    }
+    --btn-bg: var(--color-primary);
+    --btn-color: var(--color-on-primary);
+    --btn-border: var(--color-primary);
+    --btn-bg-hover: var(--color-primary-hover);
+    --btn-outline-hover: var(--color-primary-container);
   }
 
   &--secondary {
-    background-color: var(--color-secondary);
-    color: var(--color-on-secondary);
+    --btn-bg: var(--color-secondary);
+    --btn-color: var(--color-on-secondary);
+    --btn-border: var(--color-secondary);
+    --btn-bg-hover: var(--color-secondary-hover);
+    --btn-outline-hover: var(--color-secondary-container);
+  }
+
+  &--fill {
+    background-color: var(--btn-bg);
+    color: var(--btn-color);
+    border-color: var(--btn-border);
 
     &:hover:not(:disabled) {
-      background-color: var(--color-secondary-hover);
+      background-color: var(--btn-bg-hover, var(--btn-bg));
     }
   }
 
   &--outline {
     background-color: transparent;
-    color: var(--color-primary);
-    border-color: var(--color-primary);
+    color: var(--btn-border);
+    border-color: var(--btn-border);
 
     &:hover:not(:disabled) {
-      background-color: var(--color-primary-container);
+      background-color: var(--btn-outline-hover, var(--color-primary-container));
     }
   }
 
   &--transparent {
     background-color: transparent;
-    color: var(--color-primary);
+    color: var(--btn-border);
     border-color: transparent;
 
     &:hover:not(:disabled) {
@@ -75,7 +88,25 @@
     }
   }
 
+  &--icon {
+    background-color: transparent;
+    color: var(--btn-icon-color, var(--color-text));
+    border-color: transparent;
+    padding: var(--spacing-xxs);
+    min-width: 2rem;
+    min-height: 2rem;
+
+    &:hover:not(:disabled) {
+      background-color: var(--color-transparent-hover);
+    }
+  }
+
   // Sizes
+  &--xs {
+    padding: var(--spacing-xxs) var(--spacing-xs);
+    font-size: var(--font-size-xs);
+  }
+
   &--sm {
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: var(--font-size-sm);
@@ -84,6 +115,11 @@
   &--lg {
     padding: var(--spacing-md) var(--spacing-xl);
     font-size: var(--font-size-lg);
+  }
+
+  &--xl {
+    padding: var(--spacing-lg) var(--spacing-xl);
+    font-size: var(--font-size-xl);
   }
 
   &--primary.btn--no-hover:hover:not(:disabled) {

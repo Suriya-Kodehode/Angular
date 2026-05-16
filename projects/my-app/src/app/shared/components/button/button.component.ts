@@ -1,12 +1,8 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'transparent';
-export type ButtonSize = 'sm' | 'md' | 'lg';
+export type ButtonColor = 'primary' | 'secondary';
+export type ButtonVariant = 'fill' | 'outline' | 'transparent' | 'icon';
+export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type ButtonType = 'button' | 'submit' | 'reset';
 
 @Component({
@@ -17,7 +13,8 @@ export type ButtonType = 'button' | 'submit' | 'reset';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ButtonComponent {
-  readonly variant = input<ButtonVariant>('primary');
+  readonly color = input<ButtonColor>('primary');
+  readonly variant = input<ButtonVariant>('fill');
   readonly size = input<ButtonSize>('md');
   readonly type = input<ButtonType>('button');
   readonly loading = input<boolean>(false);
@@ -27,7 +24,7 @@ export class ButtonComponent {
   protected readonly isDisabled = computed(() => this.disabled() || this.loading());
 
   protected readonly btnClass = computed(() => {
-    const base = `btn btn--${this.variant()} btn--${this.size()}`;
+    const base = `btn btn--${this.color()} btn--${this.variant()} btn--${this.size()}`;
     return this.hover() ? base : `${base} btn--no-hover`;
   });
 }

@@ -5,8 +5,8 @@
   "compilerOptions": {
     "strict": true,
     "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
+    
     "paths": {
       "my-lib": ["./dist/my-lib"],
       "@my-lib": ["./dist/my-lib"],
@@ -16,7 +16,24 @@
       "@app/features/*": ["./projects/my-app/src/app/features/*"],
       "@app/environments": ["./projects/my-app/src/environments/environment.ts"]
     },
+    // =========================
+    // Neccessary strict options
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowUnusedLabels": false,
+    "noUncheckedSideEffectImports": true,
     "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    // =========================
+    // Optional strict options
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "erasableSyntaxOnly": true,
+    "exactOptionalPropertyTypes": true,
+    // =========================
+    // Dynamic options (true or false based on needs)
+    "noErrorTruncation": false,
+    // ========================= 
     "skipLibCheck": true,
     "isolatedModules": true,
     "experimentalDecorators": true,

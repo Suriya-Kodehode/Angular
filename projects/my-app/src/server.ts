@@ -4,29 +4,13 @@ import {
   isMainModule,
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
-import type { Request, Response } from 'express';
+import type { Request } from 'express';
 import express from 'express';
 import { join } from 'node:path';
 import { API_PREFIX, API_PREFIX_REGEX } from './app/shared/constants/regex.constants';
 
-interface ApiProxyConfig {
-  apiBaseUrl: string;
-  allowedMethods: string;
-  allowedHeaders: string;
-}
-
-interface ProxyRequest {
-  targetUrl: URL;
-  headers: Headers;
-  body?: Buffer;
-}
-
 const browserDistFolder = join(import.meta.dirname, '../browser');
-const proxyConfig: ApiProxyConfig = {
-  apiBaseUrl: process.env['API_BASE_URL'] ?? 'http://localhost:3000',
-  allowedMethods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-  allowedHeaders: 'Content-Type, Authorization',
-};
+const apiBaseUrl = process.env['API_BASE_URL'] ?? 'http://localhost:3000';
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
@@ -61,16 +45,12 @@ async function readRawBody(req: Request): Promise<Buffer | undefined> {
 app.all(`${API_PREFIX}/{*splat}`, async (req, res, next) => {
   try {
     const body = await readRawBody(req);
-    const proxyRequest: ProxyRequest = {
-      targetUrl: new URL(req.originalUrl.replace(API_PREFIX_REGEX, '') || '/', proxyConfig.apiBaseUrl),
-      headers: getForwardHeaders(req),
-      body,
-    };
+    const targetUrl = new URL(req.originalUrl.replace(API_PREFIX_REGEX, '') || '/', apiBaseUrl);
 
-    const upstream = await fetch(proxyRequest.targetUrl, {
+    const upstream = await fetch(targetUrl, {
       method: req.method,
-      headers: proxyRequest.headers,
-      body: proxyRequest.body as BodyInit | undefined,
+      headers: getForwardHeaders(req),
+      body: (body as BodyInit | undefined) ?? null,
     });
 
     upstream.headers.forEach((value, key) => {

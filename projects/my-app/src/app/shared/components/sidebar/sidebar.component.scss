@@ -1,0 +1,17 @@
+@use 'styles/abstracts/mixins' as mixins;
+
+.sidebar__nav {
+  @include mixins.flex-center;
+  padding: 1rem;
+}
+
+.sidebar--expanded {
+  .sidebar__nav,
+  .sidebar__links {
+    width: 100%;
+  }
+
+  .sidebar__links li {
+    width: 100%;
+  }
+}

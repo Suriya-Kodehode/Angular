@@ -1,0 +1,12 @@
+<a
+  class="sidebar-item"
+  [routerLink]="route()"
+  routerLinkActive="sidebar-item--active"
+  [routerLinkActiveOptions]="{ exact: exact() }"
+  [attr.aria-label]="expanded() ? null : label()"
+>
+  <span class="material-symbols-outlined sidebar-item__icon" aria-hidden="true">{{ icon() }}</span>
+  @if (expanded()) {
+    <span class="sidebar-item__label">{{ label() }}</span>
+  }
+</a>

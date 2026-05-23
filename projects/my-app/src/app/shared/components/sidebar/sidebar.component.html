@@ -1,9 +1,17 @@
 <aside class="sidebar" [class.sidebar--expanded]="expanded()" [class.sidebar--shrink]="!expanded()">
   <nav class="sidebar__nav">
     <ul class="sidebar__links">
-      <li>
-        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Example 1</a>
-      </li>
+      @for (item of navItems; track item.route) {
+        <li>
+          <app-sidebar-item
+            [label]="item.label"
+            [icon]="item.icon"
+            [route]="item.route"
+            [exact]="item.exact"
+            [expanded]="expanded()"
+          />
+        </li>
+      }
     </ul>
   </nav>
 </aside>

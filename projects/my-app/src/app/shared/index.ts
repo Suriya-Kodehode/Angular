@@ -21,7 +21,7 @@ export type { AdaptiveSvgIconVm } from './directives/adapt-svg.directive';
 export * from './models';
 
 // Constants
-export { APP_ICONS, type AppIconDefinition, type AppIconName } from './constants/icons';
+export { APP_ICONS, type AppIconDefinition, type AppIconName, SYMBOL_ICONS, type SymbolIconName } from './constants/icons';
 export { API_PREFIX, API_PREFIX_REGEX } from './constants/regex.constants';
 
 // Utils

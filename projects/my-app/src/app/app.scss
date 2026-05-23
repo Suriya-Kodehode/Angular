@@ -13,9 +13,7 @@
 .app-shell__body {
   display: grid;
   grid-template-columns: 280px 1fr;
-  gap: 1rem;
   flex: 1;
-  // padding: 1rem;
 }
 
 .app-shell__body.sidebar--shrink {

@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  enableConsole: true,  // set to false to globally silence all console output in dev
-};
+  enableConsole: true,  // Dev: console ON by default
+} satisfies { production: boolean; enableConsole: boolean; [key: string]: unknown };

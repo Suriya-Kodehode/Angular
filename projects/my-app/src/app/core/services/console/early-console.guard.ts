@@ -2,34 +2,28 @@ import { environment } from '@app/environments';
 
 const NOOP = (): void => {};
 
-const EARLY_GUARDED_METHODS = [
-  'log',
-  'error',
-  'info',
-  'debug',
-  'warn',
-  'trace',
-  'group',
-  'groupCollapsed',
-  'groupEnd',
-  'table',
-  'dir',
-  'count',
-  'countReset',
-  'time',
-  'timeLog',
-  'timeEnd',
-  'assert',
-] as const;
-
 /**
  * Silences native console methods before Angular bootstraps.
  * This covers logs emitted before ConsoleService patching starts.
+ * console.error is intentionally kept so critical errors remain visible in production.
  */
 export function applyEarlyConsoleGuard(): void {
   if (environment.enableConsole) return;
 
-  for (const method of EARLY_GUARDED_METHODS) {
-    (console as Record<(typeof EARLY_GUARDED_METHODS)[number], unknown>)[method] = NOOP;
-  }
+  console.log            = NOOP;
+  console.warn           = NOOP;
+  console.info           = NOOP;
+  console.debug          = NOOP;
+  console.trace          = NOOP;
+  console.group          = NOOP;
+  console.groupCollapsed = NOOP;
+  console.groupEnd       = NOOP;
+  console.table          = NOOP;
+  console.dir            = NOOP;
+  console.count          = NOOP;
+  console.countReset     = NOOP;
+  console.time           = NOOP;
+  console.timeLog        = NOOP;
+  console.timeEnd        = NOOP;
+  console.assert         = NOOP;
 }

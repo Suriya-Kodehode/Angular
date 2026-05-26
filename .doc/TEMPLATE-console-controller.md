@@ -461,45 +461,38 @@ export const environment = {
 
 ### 2.2 Add Early Guard in `main.ts`
 
-Create a small helper that no-ops selected native console methods when `enableConsole` is `false`, then invoke it before Angular bootstraps.
+Create a small helper that no-ops selected native console methods when `enableConsole` is `false`, then invoke it before Angular bootstraps. `Console` methods are directly assignable, so no cast or `any` is needed.
 
 **File**: `src/app/core/services/console/early-console.guard.ts` — `[NEW]` 🚀
 
 ```typescript
 import { environment } from '@app/environments';
 
-const NOOP = (): void => {};
-
-const EARLY_GUARDED_METHODS = [
-  'log',
-  'error',
-  'info',
-  'debug',
-  'warn',
-  'trace',
-  'group',
-  'groupCollapsed',
-  'groupEnd',
-  'table',
-  'dir',
-  'count',
-  'countReset',
-  'time',
-  'timeLog',
-  'timeEnd',
-  'assert',
-] as const;
-
 /**
  * Silences native console methods before Angular bootstraps.
  * This covers logs emitted before ConsoleService patching starts.
+ * console.error is intentionally kept — critical errors remain visible in production.
  */
 export function applyEarlyConsoleGuard(): void {
   if (environment.enableConsole) return;
 
-  for (const method of EARLY_GUARDED_METHODS) {
-    (console as Record<(typeof EARLY_GUARDED_METHODS)[number], unknown>)[method] = NOOP;
-  }
+  const noop = (): void => {};
+  console.log            = noop;
+  console.warn           = noop;
+  console.info           = noop;
+  console.debug          = noop;
+  console.trace          = noop;
+  console.group          = noop;
+  console.groupCollapsed = noop;
+  console.groupEnd       = noop;
+  console.table          = noop;
+  console.dir            = noop;
+  console.count          = noop;
+  console.countReset     = noop;
+  console.time           = noop;
+  console.timeLog        = noop;
+  console.timeEnd        = noop;
+  console.assert         = noop;
 }
 ```
 
@@ -517,7 +510,7 @@ bootstrapApplication(App, appConfig)
   .catch((err) => console.error(err));
 ```
 
-**Deliverables**: ✔️ Early guard helper created, ✔️ `main.ts` calls guard before bootstrap, ✔️ Pre-bootstrap logs suppressed in production
+**Deliverables**: ✔️ Early guard helper created, ✔️ `main.ts` calls guard before bootstrap, ✔️ Pre-bootstrap logs suppressed in production, ✔️ No `any` types, ✔️ No casts
 
 ---
 

@@ -1,3 +1,5 @@
+@use 'styles/abstracts/mixins' as mixins;
+
 .sidebar-item {
   display: flex;
   align-items: center;
@@ -14,6 +16,10 @@
     background-color: var(--color-surface-hover);
   }
 
+  &:focus-visible {
+    @include mixins.focus-ring;
+  }
+
   &--active {
     color: var(--color-primary);
     background-color: var(--color-primary-container);
@@ -26,7 +32,6 @@
 
   &__label {
     font-size: var(--font-size-sm);
-    overflow: hidden;
-    text-overflow: ellipsis;
+    @include mixins.truncate;
   }
 }

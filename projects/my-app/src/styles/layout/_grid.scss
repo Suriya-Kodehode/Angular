@@ -1,3 +1,4 @@
+@use 'sass:map';
 @use '../abstracts' as *;
 
 .container {
@@ -6,15 +7,15 @@
   padding-inline: var(--spacing-md);
 
   @include respond-above('tablet') {
-    max-width: 768px;
+    max-width: map.get($breakpoints, 'tablet');
     padding-inline: var(--spacing-lg);
   }
 
   @include respond-above('desktop') {
-    max-width: 1024px;
+    max-width: map.get($breakpoints, 'desktop');
   }
 
   @include respond-above('wide') {
-    max-width: 1280px;
+    max-width: map.get($breakpoints, 'wide');
   }
 }

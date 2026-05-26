@@ -1,4 +1,4 @@
-@use 'variables' as vars;
+@use 'settings' as settings;
 @use 'sass:map';
 
 // ─── Responsive ──────────────────────────────────────────────────────────────
@@ -6,8 +6,8 @@
 /// Mobile-first min-width breakpoint
 /// @example @include respond-above('tablet') { ... }
 @mixin respond-above($breakpoint) {
-  @if map.has-key(vars.$breakpoints, $breakpoint) {
-    $value: map.get(vars.$breakpoints, $breakpoint);
+  @if map.has-key(settings.$breakpoints, $breakpoint) {
+    $value: map.get(settings.$breakpoints, $breakpoint);
     @media (min-width: $value) {
       @content;
     }
@@ -19,8 +19,8 @@
 /// Desktop-first max-width breakpoint
 /// @example @include respond-below('tablet') { ... }
 @mixin respond-below($breakpoint) {
-  @if map.has-key(vars.$breakpoints, $breakpoint) {
-    $value: map.get(vars.$breakpoints, $breakpoint);
+  @if map.has-key(settings.$breakpoints, $breakpoint) {
+    $value: map.get(settings.$breakpoints, $breakpoint);
     @media (max-width: ($value - 1px)) {
       @content;
     }

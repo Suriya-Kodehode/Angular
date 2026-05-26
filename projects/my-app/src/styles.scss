@@ -1,5 +1,8 @@
-// ─── 1. Abstracts (no CSS output — variables, mixins, functions) ─────────────
+// ─── 1. Abstracts (no CSS output — settings, mixins, functions) ─────────────
 @use 'styles/abstracts';
+
+// ─── 1a. Global design tokens (emits CSS custom properties) ─────────────────
+@use 'styles/abstracts/variables';
 
 // ─── 2. Vendors ───────────────────────────────────────────────────────────────
 @use 'styles/vendors/vendors';

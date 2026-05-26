@@ -5,7 +5,7 @@
 **Priority**: TBD  
 **Target Completion**: TBD  
 
-**Motivation**: Sensitive data and debug messages are currently emitted via raw `console.log` calls in production builds. This template introduces a centralized `ConsoleService` that gates all console output through an environment-aware boolean with per-call override support, while keeping all existing call sites syntactically unchanged after a one-time bootstrap patch.
+**Motivation**: Sensitive data and debug messages are currently emitted via raw `console.log` calls in production builds. This template introduces a centralized `ConsoleService` that gates all console output through an environment-aware boolean with per-call override support, while keeping all existing call sites syntactically unchanged after a one-time bootstrap patch. It also adds an early bootstrap guard so logs emitted before Angular initialisation are silenced in production.
 
 ---
 
@@ -15,7 +15,8 @@
 - [Project Structure](#project-structure)
 - [Phase Timeline](#phase-timeline)
 - [Phase 1 — ConsoleService Core](#phase-1--consoleservice-core)
-- [Phase 2 — Environment & Global Toggle Wiring](#phase-2--environment--global-toggle-wiring)
+- [Phase 2 — Environment & Early Guard Wiring](#phase-2--environment--early-guard-wiring)
+- [Phase 3 — Bootstrap Patch & Runtime Toggle Wiring](#phase-3--bootstrap-patch--runtime-toggle-wiring)
 - [Usage Guide](#usage-guide)
 - [Visibility Rules Reference](#visibility-rules-reference)
 - [Testing Checklist](#testing-checklist)
@@ -40,7 +41,12 @@
 
 ### Approach: Wrapper Service (Drop-in Replacement)
 
-`ConsoleService` wraps all 18 native `console` methods. After a one-time bootstrap patch in `App.ngOnInit()` via `patchConsole()`, all `console.*` calls across the entire app — including third-party libraries — are automatically routed through the service. The `opts()` helper and the `always`/`never` pre-built constants provide clean syntax for per-call overrides at any call site with no injection required.
+`ConsoleService` wraps all 18 native `console` methods. The implementation uses a two-step strategy:
+
+1. Apply an **early guard** in `main.ts` before `bootstrapApplication()` to silence pre-bootstrap native console output in production.
+2. Apply the normal `patchConsole()` call in `App.ngOnInit()` so all runtime `console.*` calls route through `ConsoleService` (including third-party libraries).
+
+The `opts()` helper and the `always`/`never` pre-built constants provide clean syntax for per-call overrides at any call site with no injection required.
 
 ---
 
@@ -49,17 +55,17 @@
 ```
 src/
 └── app/
-    └── services/
-        └── console/                               [NEW] 🚀
-            ├── console.service.ts                 [NEW] 🚀  Core service
-            └── console.patch.ts                   [NEW] 🚀  Bootstrap patch helper (see §2.2)
-src/
+  ├── core/
+  │   └── services/
+  │       └── console/                          [NEW] 🚀
+  │           ├── console.service.ts            [NEW] 🚀  Core service
+  │           ├── early-console.guard.ts        [NEW] 🚀  Pre-bootstrap suppression helper (see §2.2)
+  │           └── console.patch.ts              [NEW] 🚀  Bootstrap patch helper (see §3.1)
+  └── app.ts                                    [MODIFY] 🔧  Bootstrap console patch
 └── environments/
-    ├── environment.ts                             [MODIFY] 🔧  Add enableConsole flag
-    └── environment.prod.ts                        [MODIFY] 🔧  Add enableConsole flag
-src/
-└── app/
-    └── app.component.ts                           [MODIFY] 🔧  Bootstrap console patch
+  ├── environment.ts                            [MODIFY] 🔧  Add enableConsole flag
+  └── environment.prod.ts                       [MODIFY] 🔧  Add enableConsole flag
+└── main.ts                                       [MODIFY] 🔧  Call early guard before bootstrap
 ```
 
 ---
@@ -69,7 +75,8 @@ src/
 | Phase | Description | Status | Dependencies | Estimated Effort |
 |-------|-------------|--------|--------------|-----------------|
 | 1.0 | `ConsoleService` core implementation | ⭕ Not Started | None | 1 hour |
-| 2.0 | Environment config + global toggle wiring | ⭕ Not Started | Phase 1 | 30 min |
+| 2.0 | Environment config + early guard wiring | ⭕ Not Started | Phase 1 | 30 min |
+| 3.0 | Bootstrap patch + runtime toggle wiring | ⭕ Not Started | Phase 2 | 20 min |
 
 ---
 
@@ -83,11 +90,11 @@ src/
 
 ### 1.1 Create `ConsoleService`
 
-**File**: `src/app/services/console/console.service.ts`
+**File**: `src/app/core/services/console/console.service.ts`
 
 ```typescript
 import { Injectable } from '@angular/core';
-import { environment } from '../../../environments/environment';
+import { environment } from '@app/environments';
 
 /** Unique marker that unambiguously identifies a ConsoleCallOptions object. */
 export const CONSOLE_OPTIONS = Symbol('ConsoleCallOptions');
@@ -422,7 +429,7 @@ export class ConsoleService {
 
 ---
 
-## Phase 2 — Environment & Global Toggle Wiring
+## Phase 2 — Environment & Early Guard Wiring
 
 ### 2.1 Add `enableConsole` to Environment Files
 
@@ -452,13 +459,77 @@ export const environment = {
 
 **Deliverables**: ✔️ `environment.ts` updated, ✔️ `environment.prod.ts` updated, ✔️ Both files mirrored, ✔️ Build-time defaults confirmed
 
-### 2.2 Patch Native Console at Bootstrap
+### 2.2 Add Early Guard in `main.ts`
 
-Extract all `console.*` assignments into a dedicated helper file, then call it once in `AppComponent.ngOnInit()`. After this runs, every `console.*` call anywhere in the app — including third-party libraries — is routed through the service.
+Create a small helper that no-ops selected native console methods when `enableConsole` is `false`, then invoke it before Angular bootstraps.
+
+**File**: `src/app/core/services/console/early-console.guard.ts` — `[NEW]` 🚀
+
+```typescript
+import { environment } from '@app/environments';
+
+const NOOP = (): void => {};
+
+const EARLY_GUARDED_METHODS = [
+  'log',
+  'error',
+  'info',
+  'debug',
+  'warn',
+  'trace',
+  'group',
+  'groupCollapsed',
+  'groupEnd',
+  'table',
+  'dir',
+  'count',
+  'countReset',
+  'time',
+  'timeLog',
+  'timeEnd',
+  'assert',
+] as const;
+
+/**
+ * Silences native console methods before Angular bootstraps.
+ * This covers logs emitted before ConsoleService patching starts.
+ */
+export function applyEarlyConsoleGuard(): void {
+  if (environment.enableConsole) return;
+
+  for (const method of EARLY_GUARDED_METHODS) {
+    (console as Record<(typeof EARLY_GUARDED_METHODS)[number], unknown>)[method] = NOOP;
+  }
+}
+```
+
+**File**: `src/main.ts` — `[MODIFY]` 🔧
+
+```typescript
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { App } from './app/app';
+import { applyEarlyConsoleGuard } from './app/core/services/console/early-console.guard';
+
+applyEarlyConsoleGuard();
+
+bootstrapApplication(App, appConfig)
+  .catch((err) => console.error(err));
+```
+
+**Deliverables**: ✔️ Early guard helper created, ✔️ `main.ts` calls guard before bootstrap, ✔️ Pre-bootstrap logs suppressed in production
+
+---
+
+## Phase 3 — Bootstrap Patch & Runtime Toggle Wiring
+
+### 3.1 Patch Native Console at Bootstrap
+
+Extract all `console.*` assignments into a dedicated helper file, then call it once in `App.ngOnInit()`. After this runs, every `console.*` call anywhere in the app — including third-party libraries — is routed through the service.
 
 > ⚠️ **Recursion guard:** `ConsoleService` captures the original browser console methods in `_native` at construction time (before this patch runs). `output()` delegates to `_native[method]` — not `console[method]` — so the patched `console` calling back into the service does not cause infinite recursion.
 
-**File**: `src/app/services/console/console.patch.ts` — `[NEW]` 🚀
+**File**: `src/app/core/services/console/console.patch.ts` — `[NEW]` 🚀
 
 Create a `patchConsole()` function that assigns the core five methods. **Only add extra methods here if the developer has explicitly requested them** (see Non-Goals):
 
@@ -467,7 +538,7 @@ import { ConsoleService } from './console.service';
 
 /**
  * Patches the native `console` object with `ConsoleService` methods.
- * Call once in `AppComponent.ngOnInit()` after Angular has bootstrapped.
+ * Call once in `App.ngOnInit()` after Angular has bootstrapped.
  */
 export function patchConsole(cs: ConsoleService): void {
   Object.assign(console, {
@@ -486,7 +557,8 @@ Inject `ConsoleService` via `inject()`, import `patchConsole`, and call it at th
 
 ```typescript
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
-import { patchConsole } from './services/console/console.patch';
+import { ConsoleService } from '@app/core/services';
+import { patchConsole } from '@app/core/services/console/console.patch';
 
 // Using inject() — no constructor needed:
 private readonly consoleService = inject(ConsoleService);
@@ -500,14 +572,14 @@ ngOnInit(): void {
 After this patch, `always` and `never` can be passed to `console` at any call site without injecting the service:
 
 ```typescript
-import { always, never } from './services/console/console.service';
+import { always, never } from '@app/core/services/console/console.service';
 
 console.error(always, 'Critical failure:', err);  // → always visible
 console.log(never,  'Noisy trace:', data);        // → always silent
 console.log('Normal log');                        // → gated by enabled
 ```
 
-### 2.3 Runtime Toggle (Optional)
+### 3.2 Runtime Toggle (Optional)
 
 `ConsoleService.enabled` is a plain public boolean that can be flipped at runtime without a rebuild:
 
@@ -518,7 +590,7 @@ this.consoleService.enabled = false;  // silence all non-forced logs
 
 > **Ownership rule:** Only `App.ngOnInit()` should write to `enabled` on startup. Prefer `always` for individual critical calls rather than toggling the global flag — a global flip silences or reveals all logging across the entire app at once.
 
-**Deliverables**: ✔️ Native `console` patched at bootstrap, ✔️ All call sites gated without per-file changes
+**Deliverables**: ✔️ Native `console` patched at bootstrap, ✔️ All call sites gated without per-file changes, ✔️ Early-guard + patch sequencing documented
 
 ---
 
@@ -529,7 +601,7 @@ this.consoleService.enabled = false;  // silence all non-forced logs
 After the bootstrap patch, `console.*` calls anywhere in the app are already routed through `ConsoleService`. Import `always` or `never` only where overrides are needed:
 
 ```typescript
-import { always, never } from '../services/console/console.service';
+import { always, never } from '@app/core/services/console/console.service';
 
 console.error(always, 'Critical error:', err);  // always visible
 console.log(never,  'Noisy trace:', data);      // always silent
@@ -539,6 +611,8 @@ console.log('Normal log');                      // gated by enabled
 For tagged output, add `const console = contextConsole('ClassName')` at the top of the file — no injection needed. See [Scoped Logger (Tagged Output)](#scoped-logger-tagged-output) below.
 
 `opts` is available for custom or combined options not covered by `always`/`never`.
+
+> ℹ️ `always`/`never` applies to calls routed through `ConsoleService` (after bootstrap patch). The early guard in `main.ts` is a pre-bootstrap safety layer and does not parse per-call options.
 
 ---
 
@@ -562,7 +636,7 @@ console.trace('Call stack trace');
 Use `contextConsole(tag)` to shadow the global `console` at the top of any file. **No injection required.** Every `console.*` call below that line uses the tagged logger — the call syntax is identical to native `console`.
 
 ```typescript
-import { contextConsole, always, never } from '../services/console/console.service';
+import { contextConsole, always, never } from '@app/core/services/console/console.service';
 
 // Shadow global console — one line per file:
 const console = contextConsole('AuthService');
@@ -587,7 +661,7 @@ All per-call overrides (`force`, `suppress`) work identically.
 Pass `always` as the **first** argument. The call bypasses the global toggle and always reaches the console. Use for errors and operational events that must be visible regardless of environment.
 
 ```typescript
-import { always } from '../services/console/console.service';
+import { always } from '@app/core/services/console/console.service';
 
 console.error(always, 'Critical failure:', err);
 console.warn(always, 'Connection lost');
@@ -595,7 +669,7 @@ console.warn(always, 'Connection lost');
 
 ```typescript
 // With contextConsole — tag is prepended automatically:
-import { contextConsole, always } from '../services/console/console.service';
+import { contextConsole, always } from '@app/core/services/console/console.service';
 const console = contextConsole('ClassName');    // top of file
 console.error(always, 'Critical failure:', err);  // → [ClassName] Critical failure: ...
 ```
@@ -607,7 +681,7 @@ console.error(always, 'Critical failure:', err);  // → [ClassName] Critical fa
 Pass `never` as the **first** argument. The call is permanently silenced — even when `enabled = true` in development. Use for high-frequency traces that are useful during initial development but noisy thereafter.
 
 ```typescript
-import { never } from '../services/console/console.service';
+import { never } from '@app/core/services/console/console.service';
 
 console.log(never, 'Polling tick');
 console.log(never, 'Cache hit:', key);
@@ -615,7 +689,7 @@ console.log(never, 'Cache hit:', key);
 
 ```typescript
 // With contextConsole — tag is prepended automatically:
-import { contextConsole, never } from '../services/console/console.service';
+import { contextConsole, never } from '@app/core/services/console/console.service';
 const console = contextConsole('ClassName');    // top of file
 console.log(never, 'Cache hit:', key);          // → silent
 ```
@@ -749,6 +823,7 @@ console.assert(always, isValid, '[validate] schema invalid:', errors);
 ### Manual
 - [ ] `ng serve` — console output appears in DevTools as expected
 - [ ] `ng build` — built app produces no `console.*` output without `force: true`
+- [ ] Pre-bootstrap logs (before `bootstrapApplication`) are suppressed in production builds
 - [ ] Admin toggle (`consoleService.enabled = true`) in prod re-enables output at runtime
 - [ ] `always` call appears in DevTools even in a prod build
 - [ ] `never` call does not appear in DevTools even in a dev build

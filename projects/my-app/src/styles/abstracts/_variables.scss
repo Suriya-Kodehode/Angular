@@ -1,207 +1,42 @@
-// ─── Layer 1: Primitive palette (raw values — do not use directly in components) ──
-:root {
-  // Base — pure values
-  --white: oklch(100% 0 0);
-  --black: oklch(0% 0 0);
-
-  // White alpha scale — white with opacity (overlays, glass, hover tints)
-  --white-100: oklch(100% 0 0 / 0.06); // barely visible — subtle highlight
-  --white-200: oklch(100% 0 0 / 0.12); // light — card border on dark bg
-  --white-300: oklch(100% 0 0 / 0.20); // soft — hover overlay on dark surface
-  --white-500: oklch(100% 0 0 / 0.50); // mid — glass effect, scrim
-  --white-700: oklch(100% 0 0 / 0.70); // strong — modal overlay tint
-  --white-800: oklch(100% 0 0 / 0.80); // very strong — frosted glass
-  --white-900: oklch(100% 0 0 / 0.90); // near opaque — high contrast overlay
-  --white-950: oklch(100% 0 0 / 0.96); // near pure — almost solid white
-
-  // Black alpha scale — black with opacity (shadows, scrims, darkening)
-  --black-100: oklch(0% 0 0 / 0.06); // barely visible — subtle shadow
-  --black-200: oklch(0% 0 0 / 0.12); // light — card shadow, input border
-  --black-300: oklch(0% 0 0 / 0.20); // soft — hover darken overlay
-  --black-500: oklch(0% 0 0 / 0.50); // mid — modal backdrop, scrim
-  --black-700: oklch(0% 0 0 / 0.70); // strong — dark overlay
-  --black-800: oklch(0% 0 0 / 0.80); // very strong — deep scrim
-  --black-900: oklch(0% 0 0 / 0.90); // near opaque — high contrast overlay
-  --black-950: oklch(0% 0 0 / 0.96); // near pure — almost solid black
-
-  // Blue
-  --blue-100: oklch(95.32% 0.0151 222.71); // very light sky — backgrounds, highlights
-  --blue-200: oklch(88.48% 0.0361 227.31); // light — borders, hover bg
-  --blue-300: oklch(74.82% 0.0802 228.98); // soft blue — dark mode primary
-  --blue-500: oklch(65.82% 0.1049 234.41); // vivid blue — light mode primary
-  --blue-700: oklch(56.45% 0.0968 240.95); // dark — hover state
-  --blue-800: oklch(51.34% 0.0929 244.72); // darker — pressed state
-  --blue-900: oklch(42.17% 0.0879 251.78); // deep navy — strong emphasis
-  --blue-950: oklch(27.87% 0.0227 235.06); // near-black blue — dark mode primary-light bg
-
-  // Gray
-  --gray-100: oklch(97.02% 0 0); // lightest — light mode surface
-  --gray-200: oklch(94.91% 0 0); // light — borders, secondary bg
-  --gray-500: oklch(69.93% 0 0); // mid — muted text, placeholders
-  --gray-700: oklch(49.26% 0 0); // dark — dark mode secondary
-  --gray-800: oklch(29.31% 0 0); // darker — dark mode border
-  --gray-850: oklch(23.5% 0 0);  // very dark — dark mode surface
-  --gray-900: oklch(24.78% 0 0); // near-black — light mode text
-  --gray-950: oklch(18.22% 0 0); // deepest — dark mode background
-
-  // Green
-  --green-100: oklch(95.71% 0.0187 161.6);  // very light — success bg tint
-  --green-200: oklch(89.52% 0.0443 160.41); // light — success border
-  --green-300: oklch(82.92% 0.0727 160.23); // soft — success hover in dark
-  --green-500: oklch(67.31% 0.1411 159.08); // vivid — base success
-  --green-700: oklch(57.52% 0.1255 159.06); // dark — success hover
-  --green-800: oklch(52.34% 0.1169 159.05); // darker — success pressed
-  --green-900: oklch(42.54% 0.1007 159.15); // deep — strong emphasis
-  --green-950: oklch(31.06% 0.0746 158.99); // near-black green — darkest tint
-
-  // Orange
-  --orange-100: oklch(96.85% 0.0158 70.97);  // very light — warning bg tint
-  --orange-200: oklch(92.13% 0.0391 67.66);  // light — warning border
-  --orange-300: oklch(87.41% 0.0634 65.99);  // soft — warning hover in dark
-  --orange-500: oklch(77.03% 0.114 48.07);   // vivid — base warning
-  --orange-700: oklch(71.2% 0.1324 36.33);   // dark — warning hover
-  --orange-800: oklch(67.99% 0.1442 31.28);  // darker — warning pressed
-  --orange-900: oklch(63.1% 0.1657 24.81);   // deep — strong emphasis
-  --orange-950: oklch(39.81% 0.1013 25.66);  // near-black orange — darkest tint
-
-  // Red
-  --red-100: oklch(95.68% 0.022 4.09);   // very light — error bg tint
-  --red-200: oklch(89.31% 0.0561 6.57);  // light — error border
-  --red-300: oklch(77.16% 0.0983 11.22); // soft — error hover in dark
-  --red-500: oklch(64.27% 0.1971 16.82); // vivid — base error
-  --red-700: oklch(56.8% 0.1859 15.3);   // dark — error hover
-  --red-800: oklch(53.86% 0.1796 15.5);  // darker — error pressed
-  --red-900: oklch(50.16% 0.1741 15.98); // deep — strong emphasis
-  --red-950: oklch(31.31% 0.108 15.9);   // near-black red — darkest tint
-
-  // Yellow
-  --yellow-100: oklch(98.98% 0.0163 112.77); // very light — caution bg tint
-  --yellow-200: oklch(97.39% 0.0386 111.91); // light — caution border
-  --yellow-300: oklch(94.54% 0.0822 112.99); // soft — caution hover in dark
-  --yellow-500: oklch(92.85% 0.1023 112.41); // vivid — base caution
-  --yellow-700: oklch(79.2% 0.0958 59.66);   // dark — caution hover
-  --yellow-800: oklch(71.71% 0.1291 36.25);  // darker — caution pressed
-  --yellow-900: oklch(63.1% 0.1657 24.81);   // deep — strong emphasis
-  --yellow-950: oklch(42.45% 0.0796 35.95);  // near-black yellow — darkest tint
-
-  // Amber
-  --amber-100: oklch(97.85% 0.0167 95.46); // very light — soft warning bg tint
-  --amber-200: oklch(94.48% 0.0407 93.37); // light — soft warning border
-  --amber-300: oklch(91.31% 0.064 93.1);   // soft — soft warning hover in dark
-  --amber-500: oklch(84.42% 0.0937 80.67); // vivid — base amber
-  --amber-700: oklch(78.39% 0.1076 53.39); // dark — amber hover
-  --amber-800: oklch(75.54% 0.1223 42.85); // darker — amber pressed
-  --amber-900: oklch(70.76% 0.1568 29.81); // deep — strong emphasis
-  --amber-950: oklch(42.11% 0.0821 34.38); // near-black amber — darkest tint
-
-  // Teal
-  --teal-100: oklch(94.76% 0.0187 187.48); // very light — info bg tint
-  --teal-200: oklch(87.08% 0.0466 185.63); // light — info border
-  --teal-300: oklch(79.12% 0.075 184.84);  // soft — info hover in dark
-  --teal-500: oklch(60.45% 0.1073 182.19); // vivid — base info/teal
-  --teal-700: oklch(51.66% 0.0931 180.95); // dark — teal hover
-  --teal-800: oklch(46.68% 0.0845 180.58); // darker — teal pressed
-  --teal-900: oklch(37.55% 0.0699 178.42); // deep — strong emphasis
-  --teal-950: oklch(22.47% 0.0427 176.97); // near-black teal — darkest tint
-
-  // Cyan
-  --cyan-100: oklch(96.02% 0.0227 195.3);  // very light — info bg tint (lighter)
-  --cyan-200: oklch(90.35% 0.0546 194.84); // light — info border
-  --cyan-300: oklch(84.67% 0.0845 195.21); // soft — info hover in dark
-  --cyan-500: oklch(72.91% 0.1143 198.16); // vivid — base cyan
-  --cyan-700: oklch(61.87% 0.0979 196.31); // dark — cyan hover
-  --cyan-800: oklch(55.71% 0.0887 195.12); // darker — cyan pressed
-  --cyan-900: oklch(44.44% 0.0725 191.32); // deep — strong emphasis
-  --cyan-950: oklch(26.31% 0.0425 192.63); // near-black cyan — darkest tint
-
-  // Indigo
-  --indigo-100: oklch(93.9% 0.009 285.44);   // very light — nav/active bg tint
-  --indigo-200: oklch(84.5% 0.024 284.93);   // light — nav border
-  --indigo-300: oklch(74.23% 0.0399 282.01); // soft — nav hover in dark
-  --indigo-500: oklch(47.82% 0.0857 272.6);  // vivid — base indigo
-  --indigo-700: oklch(41.64% 0.0839 272.18); // dark — indigo hover
-  --indigo-800: oklch(38.21% 0.083 271.85);  // darker — indigo pressed
-  --indigo-900: oklch(32.07% 0.0814 270.54); // deep — strong emphasis
-  --indigo-950: oklch(20.22% 0.0494 272.68); // near-black indigo — darkest tint
-
-  // Purple
-  --purple-100: oklch(93.76% 0.0222 337.29); // very light — badge/tag bg tint
-  --purple-200: oklch(84.44% 0.0574 336.94); // light — badge border
-  --purple-300: oklch(74.37% 0.0987 337.1);  // soft — badge hover in dark
-  --purple-500: oklch(51.68% 0.1824 336.88); // vivid — base purple
-  --purple-700: oklch(45.33% 0.1561 330.18); // dark — purple hover
-  --purple-800: oklch(42.02% 0.1419 325.66); // darker — purple pressed
-  --purple-900: oklch(36.01% 0.1153 312.62); // deep — strong emphasis
-  --purple-950: oklch(24.33% 0.0826 297.66); // near-black purple — darkest tint
-
-  // Violet
-  --violet-100: oklch(93.7% 0.015 321.45);   // very light — accent bg tint
-  --violet-200: oklch(84.27% 0.0365 318.57); // light — accent border
-  --violet-300: oklch(73.73% 0.0624 317.66); // soft — accent hover in dark
-  --violet-500: oklch(47.42% 0.1196 310.72); // vivid — base violet
-  --violet-700: oklch(42.15% 0.1112 303.39); // dark — violet hover
-  --violet-800: oklch(39.45% 0.1061 298.14); // darker — violet pressed
-  --violet-900: oklch(34.73% 0.0997 288.33); // deep — strong emphasis
-  --violet-950: oklch(25.72% 0.0888 275.57); // near-black violet — darkest tint
-
-  // Pink
-  --pink-100: oklch(94.05% 0.0281 357.78); // very light — highlight/tag bg tint
-  --pink-200: oklch(85.33% 0.0748 358.33); // light — highlight border
-  --pink-300: oklch(76.57% 0.1276 359.77); // soft — highlight hover in dark
-  --pink-500: oklch(60.62% 0.2276 5.56);   // vivid — base pink
-  --pink-700: oklch(53.13% 0.2009 3.37);   // dark — pink hover
-  --pink-800: oklch(48.98% 0.1867 1.7);    // darker — pink pressed
-  --pink-900: oklch(41.52% 0.1601 358.01); // deep — strong emphasis
-  --pink-950: oklch(24.64% 0.102 353.29);  // near-black pink — darkest tint
-
-  // Rose
-  --rose-100: oklch(96.37% 0.0191 0.93);  // very light — soft pink bg tint
-  --rose-200: oklch(87.63% 0.0688 3.03);  // light — soft pink border
-  --rose-300: oklch(77.8% 0.135 4.04);    // soft — rose hover in dark
-  --rose-500: oklch(64.5% 0.2094 9.37);   // vivid — base rose
-  --rose-700: oklch(51.43% 0.1919 9.65);  // dark — rose hover
-  --rose-800: oklch(45.46% 0.168 7.82);   // darker — rose pressed
-  --rose-900: oklch(41.03% 0.1486 5.91);  // deep — strong emphasis
-  --rose-950: oklch(27.08% 0.0993 6.92);  // near-black rose — darkest tint
-}
+@use 'colors' as *;
 
 // ─── Layer 2: Semantic tokens (use these in components and layout) ────────────
 :root {
   color-scheme: light;
 
   // Primary
-  --color-primary:              var(--blue-500);   // fill — button bg, icon fill
-  --color-on-primary:           var(--white);           // text/icon on primary fill
-  --color-primary-container:    var(--blue-100);   // tinted bg — chips, cards, badges
-  --color-primary-on-container: var(--blue-900);   // text/icon on primary-container
-  --color-primary-hover:        var(--blue-900);
-  --color-transparent-hover:    var(--black-100);   // transparent button hover overlay
+  --color-primary:              #{$blue-500};   // fill — button bg, icon fill
+  --color-on-primary:           #{$white};           // text/icon on primary fill
+  --color-primary-container:    #{$blue-100};   // tinted bg — chips, cards, badges
+  --color-primary-on-container: #{$blue-900};   // text/icon on primary-container
+  --color-primary-hover:        #{$blue-900};
+  --color-transparent-hover:    #{$black-100};   // transparent button hover overlay
 
   // Secondary (gray-based — update when you define a second brand color)
-  --color-secondary:              var(--gray-200);  // fill — secondary button bg
-  --color-on-secondary:           var(--black);  // text/icon on secondary fill
-  --color-secondary-container:    var(--gray-100);  // tinted bg — secondary chips, rows
-  --color-secondary-on-container: var(--gray-900);  // text/icon on secondary-container
-  --color-secondary-hover:        var(--gray-500);
+  --color-secondary:              #{$gray-200};  // fill — secondary button bg
+  --color-on-secondary:           #{$black};  // text/icon on secondary fill
+  --color-secondary-container:    #{$gray-100};  // tinted bg — secondary chips, rows
+  --color-secondary-on-container: #{$gray-900};  // text/icon on secondary-container
+  --color-secondary-hover:        #{$gray-500};
 
   // Tertiary (purple-based — accent, tags, premium UI)
-  --color-tertiary:              var(--purple-500);  // fill — accent button bg
-  --color-on-tertiary:           var(--white);            // text/icon on tertiary fill
-  --color-tertiary-container:    var(--purple-100);  // tinted bg — tags, badges, highlights
-  --color-tertiary-on-container: var(--purple-900);  // text/icon on tertiary-container
-  --color-tertiary-hover:        var(--purple-700);
+  --color-tertiary:              #{$purple-500};  // fill — accent button bg
+  --color-on-tertiary:           #{$white};            // text/icon on tertiary fill
+  --color-tertiary-container:    #{$purple-100};  // tinted bg — tags, badges, highlights
+  --color-tertiary-on-container: #{$purple-900};  // text/icon on tertiary-container
+  --color-tertiary-hover:        #{$purple-700};
 
   // Status
-  --color-success: var(--green-500);
-  --color-warning: var(--orange-500);
-  --color-error:   var(--red-500);
+  --color-success: #{$green-500};
+  --color-warning: #{$orange-500};
+  --color-error:   #{$red-500};
 
   // Surface & text
-  --color-bg:          var(--white);
-  --color-surface:     var(--gray-100);
-  --color-text:        var(--gray-900);
-  --color-text-muted:  var(--gray-500);
-  --color-border:      var(--gray-200);
+  --color-bg:          #{$white};
+  --color-surface:     #{$gray-100};
+  --color-text:        #{$gray-900};
+  --color-text-muted:  #{$gray-500};
+  --color-border:      #{$gray-200};
 
   // Spacing
   --spacing-xs: 0.25rem;
@@ -233,9 +68,9 @@
   --radius-full: 9999px;
 
   // Shadows
-  --shadow-sm: 0 1px 2px 0 var(--black-100);
-  --shadow-md: 0 4px 6px -1px var(--black-200);
-  --shadow-lg: 0 10px 15px -3px var(--black-200);
+  --shadow-sm: 0 1px 2px 0 #{$black-100};
+  --shadow-md: 0 4px 6px -1px #{$black-200};
+  --shadow-lg: 0 10px 15px -3px #{$black-200};
 
   // Transitions
   --transition-fast:   150ms ease-in-out;
@@ -248,3 +83,6 @@
   --z-modal:    1050;
   --z-tooltip:  1070;
 }
+
+
+

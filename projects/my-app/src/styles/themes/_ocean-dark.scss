@@ -4,42 +4,43 @@
 // Applied via: <html data-theme="ocean" data-mode="dark">
 // Auto-applied from system preference unless data-mode="light" is explicitly set.
 
+@use '../abstracts/colors' as *;
 @mixin _ocean-dark-tokens {
   color-scheme: dark;
 
   // Primary — teal (dark)
-  --color-primary:              var(--teal-300);
-  --color-on-primary:           var(--black);
-  --color-primary-container:    var(--teal-950);
-  --color-primary-on-container: var(--teal-200);
-  --color-primary-hover:        var(--teal-500);
-  --color-transparent-hover:    var(--white-100);
+  --color-primary:              #{$teal-300};
+  --color-on-primary:           #{$black};
+  --color-primary-container:    #{$teal-950};
+  --color-primary-on-container: #{$teal-200};
+  --color-primary-hover:        #{$teal-500};
+  --color-transparent-hover:    #{$white-100};
 
   // Secondary — cyan (dark)
-  --color-secondary:              var(--cyan-700);
-  --color-on-secondary:           var(--white);
-  --color-secondary-container:    var(--cyan-950);
-  --color-secondary-on-container: var(--cyan-200);
-  --color-secondary-hover:        var(--cyan-500);
+  --color-secondary:              #{$cyan-700};
+  --color-on-secondary:           #{$white};
+  --color-secondary-container:    #{$cyan-950};
+  --color-secondary-on-container: #{$cyan-200};
+  --color-secondary-hover:        #{$cyan-500};
 
   // Tertiary — indigo (dark)
-  --color-tertiary:              var(--indigo-300);
-  --color-on-tertiary:           var(--black);
-  --color-tertiary-container:    var(--indigo-950);
-  --color-tertiary-on-container: var(--indigo-200);
-  --color-tertiary-hover:        var(--indigo-500);
+  --color-tertiary:              #{$indigo-300};
+  --color-on-tertiary:           #{$black};
+  --color-tertiary-container:    #{$indigo-950};
+  --color-tertiary-on-container: #{$indigo-200};
+  --color-tertiary-hover:        #{$indigo-500};
 
   // Surface & text — teal-tinted dark
-  --color-bg:         var(--gray-950);
-  --color-surface:    var(--teal-950);
-  --color-text:       var(--teal-100);
-  --color-text-muted: var(--teal-300);
-  --color-border:     var(--teal-800);
+  --color-bg:         #{$gray-950};
+  --color-surface:    #{$teal-950};
+  --color-text:       #{$teal-100};
+  --color-text-muted: #{$teal-300};
+  --color-border:     #{$teal-800};
 
   // Shadows
-  --shadow-sm: 0 1px 2px 0 var(--black-300);
-  --shadow-md: 0 4px 6px -1px var(--black-500);
-  --shadow-lg: 0 10px 15px -3px var(--black-500);
+  --shadow-sm: 0 1px 2px 0 #{$black-300};
+  --shadow-md: 0 4px 6px -1px #{$black-500};
+  --shadow-lg: 0 10px 15px -3px #{$black-500};
 
   background-color: var(--color-bg);
   color: var(--color-text);
@@ -56,3 +57,4 @@
     @include _ocean-dark-tokens;
   }
 }
+

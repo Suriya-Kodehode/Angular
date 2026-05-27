@@ -4,34 +4,36 @@
 //
 // Applied via: <html data-theme="ocean">
 
+@use '../abstracts/colors' as *;
 [data-theme='ocean'] {
   color-scheme: light;
 
   // Primary — teal
-  --color-primary:              var(--teal-500);
-  --color-on-primary:           var(--white);
-  --color-primary-container:    var(--teal-100);
-  --color-primary-on-container: var(--teal-900);
-  --color-primary-hover:        var(--teal-700);
+  --color-primary:              #{$teal-500};
+  --color-on-primary:           #{$white};
+  --color-primary-container:    #{$teal-100};
+  --color-primary-on-container: #{$teal-900};
+  --color-primary-hover:        #{$teal-700};
 
   // Secondary — cyan
-  --color-secondary:              var(--cyan-200);
-  --color-on-secondary:           var(--black);
-  --color-secondary-container:    var(--cyan-100);
-  --color-secondary-on-container: var(--cyan-900);
-  --color-secondary-hover:        var(--cyan-500);
+  --color-secondary:              #{$cyan-200};
+  --color-on-secondary:           #{$black};
+  --color-secondary-container:    #{$cyan-100};
+  --color-secondary-on-container: #{$cyan-900};
+  --color-secondary-hover:        #{$cyan-500};
 
   // Tertiary — indigo
-  --color-tertiary:              var(--indigo-500);
-  --color-on-tertiary:           var(--white);
-  --color-tertiary-container:    var(--indigo-100);
-  --color-tertiary-on-container: var(--indigo-900);
-  --color-tertiary-hover:        var(--indigo-700);
+  --color-tertiary:              #{$indigo-500};
+  --color-on-tertiary:           #{$white};
+  --color-tertiary-container:    #{$indigo-100};
+  --color-tertiary-on-container: #{$indigo-900};
+  --color-tertiary-hover:        #{$indigo-700};
 
   // Surface & text — teal-tinted light
-  --color-bg:         var(--white);
-  --color-surface:    var(--teal-100);
-  --color-text:       var(--gray-900);
-  --color-text-muted: var(--gray-500);
-  --color-border:     var(--teal-200);
+  --color-bg:         #{$white};
+  --color-surface:    #{$teal-100};
+  --color-text:       #{$gray-900};
+  --color-text-muted: #{$gray-500};
+  --color-border:     #{$teal-200};
 }
+

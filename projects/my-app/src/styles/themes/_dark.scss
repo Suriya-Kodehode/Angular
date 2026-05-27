@@ -5,42 +5,43 @@
 // Applied via: <html data-mode="dark">
 // Auto-applied from system preference unless data-mode="light" is explicitly set.
 
+@use '../abstracts/colors' as *;
 @mixin _default-dark-tokens {
   color-scheme: dark;
 
   // Primary
-  --color-primary:              var(--blue-300);
-  --color-on-primary:           var(--black);
-  --color-primary-container:    var(--blue-950);
-  --color-primary-on-container: var(--blue-200);
-  --color-primary-hover:        var(--blue-500);
-  --color-transparent-hover:    var(--white-100);
+  --color-primary:              #{$blue-300};
+  --color-on-primary:           #{$black};
+  --color-primary-container:    #{$blue-950};
+  --color-primary-on-container: #{$blue-200};
+  --color-primary-hover:        #{$blue-500};
+  --color-transparent-hover:    #{$white-100};
 
   // Secondary
-  --color-secondary:              var(--gray-700);
-  --color-on-secondary:           var(--white);
-  --color-secondary-container:    var(--gray-850);
-  --color-secondary-on-container: var(--gray-200);
-  --color-secondary-hover:        var(--gray-500);
+  --color-secondary:              #{$gray-700};
+  --color-on-secondary:           #{$white};
+  --color-secondary-container:    #{$gray-850};
+  --color-secondary-on-container: #{$gray-200};
+  --color-secondary-hover:        #{$gray-500};
 
   // Tertiary
-  --color-tertiary:              var(--purple-300);
-  --color-on-tertiary:           var(--black);
-  --color-tertiary-container:    var(--purple-950);
-  --color-tertiary-on-container: var(--purple-200);
-  --color-tertiary-hover:        var(--purple-500);
+  --color-tertiary:              #{$purple-300};
+  --color-on-tertiary:           #{$black};
+  --color-tertiary-container:    #{$purple-950};
+  --color-tertiary-on-container: #{$purple-200};
+  --color-tertiary-hover:        #{$purple-500};
 
   // Surface & text
-  --color-bg:         var(--gray-950);
-  --color-surface:    var(--gray-850);
-  --color-text:       var(--gray-100);
-  --color-text-muted: var(--gray-500);
-  --color-border:     var(--gray-800);
+  --color-bg:         #{$gray-950};
+  --color-surface:    #{$gray-850};
+  --color-text:       #{$gray-100};
+  --color-text-muted: #{$gray-500};
+  --color-border:     #{$gray-800};
 
   // Shadows
-  --shadow-sm: 0 1px 2px 0 var(--black-300);
-  --shadow-md: 0 4px 6px -1px var(--black-500);
-  --shadow-lg: 0 10px 15px -3px var(--black-500);
+  --shadow-sm: 0 1px 2px 0 #{$black-300};
+  --shadow-md: 0 4px 6px -1px #{$black-500};
+  --shadow-lg: 0 10px 15px -3px #{$black-500};
 
   background-color: var(--color-bg);
   color: var(--color-text);
@@ -57,3 +58,4 @@
     @include _default-dark-tokens;
   }
 }
+

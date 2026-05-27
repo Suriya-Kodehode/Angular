@@ -1,14 +1,15 @@
 @use 'sass:color';
 @use 'sass:math';
+@use 'colors' as *;
 
 /// Lighten a color by mixing with white
 @function tint($clr, $percentage) {
-  @return color.mix(white, $clr, $percentage);
+  @return color.mix($white, $clr, $percentage);
 }
 
 /// Darken a color by mixing with black
 @function shade($clr, $percentage) {
-  @return color.mix(black, $clr, $percentage);
+  @return color.mix($black, $clr, $percentage);
 }
 
 /// Convert px to rem (base 16px)

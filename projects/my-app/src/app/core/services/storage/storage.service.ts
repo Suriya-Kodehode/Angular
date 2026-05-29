@@ -2,13 +2,18 @@ import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 export type JsonPrimitive = string | number | boolean | null;
-export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+export type JsonArray = JsonValue[];
+export type JsonObject = { readonly [key: string]: JsonValue };
+export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 
-export interface LocalStorageAdapter {
-  hasItem(key: string): boolean;
-  getItem<T extends JsonValue = JsonValue>(key: string): T | null;
-  setItem<T extends JsonValue = JsonValue>(key: string, value: T): void;
-  removeItem(key: string): void;
+export type LocalStorageSchema = Record<string, JsonValue>;
+export type LocalStorageKey<Schema extends LocalStorageSchema> = keyof Schema & string;
+
+export interface LocalStorageAdapter<Schema extends LocalStorageSchema = Record<string, JsonValue>> {
+  hasItem<Key extends LocalStorageKey<Schema>>(key: Key): boolean;
+  getItem<Key extends LocalStorageKey<Schema>>(key: Key): Schema[Key] | null;
+  setItem<Key extends LocalStorageKey<Schema>>(key: Key, value: Schema[Key]): void;
+  removeItem(key: LocalStorageKey<Schema>): void;
   clear(): void;
 }
 
@@ -58,68 +63,47 @@ export class LocalStorageService implements LocalStorageAdapter {
     }
   }
 
-  hasItem(key: string): boolean {
+  private withStorage<T>(callback: (storage: Storage) => T): T | null {
     if (!this.storage) {
-      return false;
+      return null;
     }
 
     try {
-      return this.storage.getItem(key) != null;
+      return callback(this.storage);
     } catch {
-      return false;
+      return null;
     }
+  }
+
+  hasItem(key: string): boolean {
+    return this.withStorage((storage) => storage.getItem(key) != null) ?? false;
   }
 
   getItem<T extends JsonValue = JsonValue>(key: string): T | null {
-    if (!this.storage) {
-      return null;
-    }
-
-    try {
-      const raw = this.storage.getItem(key);
-      if (raw == null) {
-        return null;
-      }
-
-      return JSON.parse(raw) as T;
-    } catch {
-      return null;
-    }
+    return this.withStorage((storage) => {
+      const raw = storage.getItem(key);
+      return raw == null ? null : (JSON.parse(raw) as T);
+    });
   }
 
   setItem<T extends JsonValue = JsonValue>(key: string, value: T): void {
-    if (!this.storage) {
-      return;
-    }
-
-    try {
-      this.storage.setItem(key, JSON.stringify(value));
-    } catch {
-      // Ignore failures for disabled storage, quota issues, or invalid values.
-    }
+    this.withStorage((storage) => {
+      storage.setItem(key, JSON.stringify(value));
+      return true;
+    });
   }
 
   removeItem(key: string): void {
-    if (!this.storage) {
-      return;
-    }
-
-    try {
-      this.storage.removeItem(key);
-    } catch {
-      // Ignore failures when storage is unavailable.
-    }
+    this.withStorage((storage) => {
+      storage.removeItem(key);
+      return true;
+    });
   }
 
   clear(): void {
-    if (!this.storage) {
-      return;
-    }
-
-    try {
-      this.storage.clear();
-    } catch {
-      // Ignore failures when storage is unavailable.
-    }
+    this.withStorage((storage) => {
+      storage.clear();
+      return true;
+    });
   }
 }

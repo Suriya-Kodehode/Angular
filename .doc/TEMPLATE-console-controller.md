@@ -48,6 +48,8 @@
 
 The `opts()` helper and the `always`/`never` pre-built constants provide clean syntax for per-call overrides at any call site with no injection required.
 
+The implementation also uses typed method-name arrays such as `consoleOutputMethodNames`, `consoleLabelMethodNames`, `consoleSpecialMethodNames`, and `consoleVoidMethodNames` so the bootstrap patch and early guard remain consistent and compile-time safe.
+
 ---
 
 ## Project Structure
@@ -84,9 +86,9 @@ src/
 
 > **⚠️ Agent pre-flight — ask before implementing:**
 > Before writing any code, ask the developer:
-> *"Should the implementation include the optional console APIs — `group`/`groupCollapsed`/`groupEnd`, `count`/`countReset`, `time`/`timeEnd`/`timeLog`, `table`, `dir`, and `assert`? The core five (`log`, `warn`, `error`, `debug`, `info`) are always included. Optional APIs add ~60 lines and broader `patchConsole` coverage but may not be needed for every project."*
+> *"Do you want the optional console APIs — `group`/`groupCollapsed`/`groupEnd`, `count`/`countReset`, `time`/`timeEnd`/`timeLog`, `table`, `dir`, and `assert` — included? The core five (`log`, `warn`, `error`, `debug`, `info`) are always included. Optional APIs add broader `patchConsole` coverage but also more implementation surface area."
 >
-> Wait for confirmation before proceeding. If the developer confirms **all optional APIs**, implement the full 18-method version below. If they decline, implement only the 5-method version (omit the extra type aliases, `ScopedLogger` entries, `_native` bindings, public fields, `forContext` entries, and private helpers for the optional methods, and keep `patchConsole` to the core five).
+> If the developer confirms **all optional APIs**, implement the full 18-method version below with typed method-name arrays and patching helpers. If they decline, implement only the core five and omit optional helper methods and extra patch wiring.
 
 ### 1.1 Create `ConsoleService`
 
@@ -98,6 +100,18 @@ import { environment } from '@app/environments';
 
 /** Unique marker that unambiguously identifies a ConsoleCallOptions object. */
 export const CONSOLE_OPTIONS = Symbol('ConsoleCallOptions');
+
+/** Typed method-name arrays used by `patchConsole()` and the early guard. */
+export const consoleOutputMethodNames = ['log', 'warn', 'error', 'debug', 'info', 'trace', 'group', 'groupCollapsed'] as const;
+export const consoleLabelMethodNames = ['count', 'countReset', 'time', 'timeEnd'] as const;
+export const consoleSpecialMethodNames = ['timeLog', 'assert', 'table', 'dir'] as const;
+export const consoleVoidMethodNames = ['groupEnd', 'clear'] as const;
+export const consolePatchMethodNames = [
+  ...consoleOutputMethodNames,
+  ...consoleLabelMethodNames,
+  ...consoleSpecialMethodNames,
+  ...consoleVoidMethodNames,
+] as const;
 
 /** Per-call override options. */
 export interface ConsoleCallOptions {
@@ -468,6 +482,15 @@ Create a small helper that no-ops selected native console methods when `enableCo
 ```typescript
 import { environment } from '@app/environments';
 
+const earlyConsoleMethodNames = [
+  'log', 'warn', 'info', 'debug', 'trace',
+  'group', 'groupCollapsed', 'groupEnd',
+  'table', 'dir',
+  'count', 'countReset', 'time', 'timeLog', 'timeEnd', 'assert',
+] as const;
+
+type EarlyConsoleMethodName = (typeof earlyConsoleMethodNames)[number];
+
 /**
  * Silences native console methods before Angular bootstraps.
  * This covers logs emitted before ConsoleService patching starts.
@@ -477,22 +500,9 @@ export function applyEarlyConsoleGuard(): void {
   if (environment.enableConsole) return;
 
   const noop = (): void => {};
-  console.log            = noop;
-  console.warn           = noop;
-  console.info           = noop;
-  console.debug          = noop;
-  console.trace          = noop;
-  console.group          = noop;
-  console.groupCollapsed = noop;
-  console.groupEnd       = noop;
-  console.table          = noop;
-  console.dir            = noop;
-  console.count          = noop;
-  console.countReset     = noop;
-  console.time           = noop;
-  console.timeLog        = noop;
-  console.timeEnd        = noop;
-  console.assert         = noop;
+  earlyConsoleMethodNames.forEach((method) => {
+    (console as unknown as Record<EarlyConsoleMethodName, typeof noop>)[method] = noop;
+  });
 }
 ```
 
@@ -527,20 +537,18 @@ Extract all `console.*` assignments into a dedicated helper file, then call it o
 Create a `patchConsole()` function that assigns the core five methods. **Only add extra methods here if the developer has explicitly requested them** (see Non-Goals):
 
 ```typescript
-import { ConsoleService } from './console.service';
+import { ConsoleService, consolePatchMethodNames } from './console.service';
 
 /**
  * Patches the native `console` object with `ConsoleService` methods.
  * Call once in `App.ngOnInit()` after Angular has bootstrapped.
  */
 export function patchConsole(cs: ConsoleService): void {
-  Object.assign(console, {
-    log: cs.log, warn: cs.warn, error: cs.error, debug: cs.debug,
-    info: cs.info, trace: cs.trace, group: cs.group, groupCollapsed: cs.groupCollapsed,
-    groupEnd: cs.groupEnd, clear: cs.clear, count: cs.count, countReset: cs.countReset,
-    time: cs.time, timeEnd: cs.timeEnd, timeLog: cs.timeLog,
-    assert: cs.assert, table: cs.table, dir: cs.dir,
-  });
+  const patch = Object.fromEntries(
+    consolePatchMethodNames.map((method) => [method, cs[method]])
+  ) as Partial<Console>;
+
+  Object.assign(console, patch);
 }
 ```
 

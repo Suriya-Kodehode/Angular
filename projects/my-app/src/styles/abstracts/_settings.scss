@@ -1,7 +1,13 @@
 // Compile-time Sass settings only. Keep this file free of emitted CSS.
 $breakpoints: (
-  'phone':   320px,
-  'tablet':  768px,
-  'desktop': 1024px,
-  'wide':    1280px,
+  'phone':       320px,
+  'phone-lg':    480px,
+  'tablet':      768px,
+  'tablet-lg':   900px,
+  'desktop':     1024px,
+  'wide':        1280px,
+  'desktop-lg':  1440px,
+  'uhd':         1920px,
+  '2k':          2560px,
+  '4k':          3840px,
 );

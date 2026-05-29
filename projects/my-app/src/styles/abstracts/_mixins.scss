@@ -1,5 +1,16 @@
 @use 'settings' as settings;
 @use 'sass:map';
+@use 'sass:math';
+@use 'colors' as *;
+
+// ─── Shared theme tokens ─────────────────────────────────────────────────────
+
+/// Dark-mode shadow tokens — shared across all dark themes
+@mixin dark-shadows {
+  --shadow-sm: 0 1px 2px 0 #{$black-300};
+  --shadow-md: 0 4px 6px -1px #{$black-500};
+  --shadow-lg: 0 10px 15px -3px #{$black-500};
+}
 
 // ─── Responsive ──────────────────────────────────────────────────────────────
 
@@ -21,7 +32,7 @@
 @mixin respond-below($breakpoint) {
   @if map.has-key(settings.$breakpoints, $breakpoint) {
     $value: map.get(settings.$breakpoints, $breakpoint);
-    @media (max-width: ($value - 1px)) {
+    @media (max-width: ($value - 0.02px)) {
       @content;
     }
   } @else {

@@ -1,6 +1,14 @@
 import { environment } from '@app/environments';
 
 const NOOP = (): void => {};
+const earlyConsoleMethodNames = [
+  'log', 'warn', 'info', 'debug', 'trace',
+  'group', 'groupCollapsed', 'groupEnd',
+  'table', 'dir',
+  'count', 'countReset', 'time', 'timeLog', 'timeEnd', 'assert',
+] as const;
+
+type EarlyConsoleMethodName = (typeof earlyConsoleMethodNames)[number];
 
 /**
  * Silences native console methods before Angular bootstraps.
@@ -10,20 +18,7 @@ const NOOP = (): void => {};
 export function applyEarlyConsoleGuard(): void {
   if (environment.enableConsole) return;
 
-  console.log            = NOOP;
-  console.warn           = NOOP;
-  console.info           = NOOP;
-  console.debug          = NOOP;
-  console.trace          = NOOP;
-  console.group          = NOOP;
-  console.groupCollapsed = NOOP;
-  console.groupEnd       = NOOP;
-  console.table          = NOOP;
-  console.dir            = NOOP;
-  console.count          = NOOP;
-  console.countReset     = NOOP;
-  console.time           = NOOP;
-  console.timeLog        = NOOP;
-  console.timeEnd        = NOOP;
-  console.assert         = NOOP;
+  earlyConsoleMethodNames.forEach((method) => {
+    (console as unknown as Record<EarlyConsoleMethodName, typeof NOOP>)[method] = NOOP;
+  });
 }

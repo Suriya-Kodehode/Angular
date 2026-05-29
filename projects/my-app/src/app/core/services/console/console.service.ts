@@ -41,11 +41,21 @@ export const always: ConsoleCallOptions = opts({ force: true });
 export const never: ConsoleCallOptions = opts({ suppress: true });
 
 /** Names of the native console methods wrapped by ConsoleService. Routes through `output()` for force/suppress support. */
-type ConsoleMethodName      = 'log' | 'warn' | 'error' | 'debug' | 'info' | 'trace' | 'group' | 'groupCollapsed';
-/** Names of label-based native methods routed through `labelOutput()`. */
-type ConsoleLabelMethodName = 'count' | 'countReset' | 'time' | 'timeEnd';
-/** Names of no-arg native methods routed through `voidOutput()`. */
-type ConsoleVoidMethodName  = 'groupEnd' | 'clear';
+export const consoleOutputMethodNames = ['log', 'warn', 'error', 'debug', 'info', 'trace', 'group', 'groupCollapsed'] as const;
+export const consoleLabelMethodNames = ['count', 'countReset', 'time', 'timeEnd'] as const;
+export const consoleSpecialMethodNames = ['timeLog', 'assert', 'table', 'dir'] as const;
+export const consoleVoidMethodNames = ['groupEnd', 'clear'] as const;
+export const consolePatchMethodNames = [
+  ...consoleOutputMethodNames,
+  ...consoleLabelMethodNames,
+  ...consoleSpecialMethodNames,
+  ...consoleVoidMethodNames,
+] as const;
+
+export type ConsoleMethodName = (typeof consoleOutputMethodNames)[number];
+export type ConsoleLabelMethodName = (typeof consoleLabelMethodNames)[number];
+export type ConsoleVoidMethodName = (typeof consoleVoidMethodNames)[number];
+export type ConsoleSpecialMethodName = (typeof consoleSpecialMethodNames)[number];
 
 /** Typed call signature for label-based methods: `count`, `countReset`, `time`, `timeEnd`. */
 type ConsoleLabelMethod = {

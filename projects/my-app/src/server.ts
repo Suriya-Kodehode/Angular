@@ -29,13 +29,13 @@ function getForwardHeaders(req: Request): Headers {
   return headers;
 }
 
-async function readRawBody(req: Request): Promise<Buffer | undefined> {
+async function readRawBody(req: Request): Promise<BodyInit | undefined> {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
     return undefined;
   }
 
   const chunks: Buffer[] = [];
-  for await (const chunk of req) {
+  for await (const chunk of req as AsyncIterable<Buffer | string>) {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
 
@@ -50,7 +50,7 @@ app.all(`${API_PREFIX}/{*splat}`, async (req, res, next) => {
     const upstream = await fetch(targetUrl, {
       method: req.method,
       headers: getForwardHeaders(req),
-      body: (body as BodyInit | undefined) ?? null,
+      body: body ?? null,
     });
 
     upstream.headers.forEach((value, key) => {
@@ -63,7 +63,7 @@ app.all(`${API_PREFIX}/{*splat}`, async (req, res, next) => {
     });
 
     res.status(upstream.status).send(Buffer.from(await upstream.arrayBuffer()));
-  } catch (error) {
+  } catch (error: unknown) {
     next(error);
   }
 });

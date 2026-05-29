@@ -1,7 +1,25 @@
 import { Injectable, inject, PLATFORM_ID, effect, signal } from '@angular/core';
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import type { ThemePalette, ThemeMode } from './theme.model';
+import type { ThemeMode, ThemePalette } from './theme.model';
+import { defaultThemeMode, defaultThemePalette } from './theme.model';
 
+const themeAttributeMap = {
+  palette: {
+    attr: 'data-theme' as const,
+    defaultValue: defaultThemePalette,
+  },
+  mode: {
+    attr: 'data-mode' as const,
+    defaultValue: defaultThemeMode,
+  },
+} as const;
+
+type ThemeAttributeKey = keyof typeof themeAttributeMap;
+
+type ThemeAttributeValues = {
+  palette: ThemePalette;
+  mode: ThemeMode;
+};
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
@@ -9,31 +27,19 @@ export class ThemeService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
-  private readonly _palette = signal<ThemePalette>('default');
-  private readonly _mode = signal<ThemeMode>('system');
+  private readonly _palette = signal<ThemePalette>(defaultThemePalette);
+  private readonly _mode = signal<ThemeMode>(defaultThemeMode);
 
   readonly palette = this._palette.asReadonly();
   readonly mode = this._mode.asReadonly();
 
   constructor() {
     effect(() => {
-      if (!this.isBrowser) return;
-      const p = this._palette();
-      if (p === 'default') {
-        this.doc.documentElement.removeAttribute('data-theme');
-      } else {
-        this.doc.documentElement.setAttribute('data-theme', p);
-      }
+      this.updateAttribute('palette', this._palette());
     });
 
     effect(() => {
-      if (!this.isBrowser) return;
-      const m = this._mode();
-      if (m === 'system') {
-        this.doc.documentElement.removeAttribute('data-mode');
-      } else {
-        this.doc.documentElement.setAttribute('data-mode', m);
-      }
+      this.updateAttribute('mode', this._mode());
     });
   }
 
@@ -43,5 +49,21 @@ export class ThemeService {
 
   setMode(mode: ThemeMode): void {
     this._mode.set(mode);
+  }
+
+  private updateAttribute<Key extends ThemeAttributeKey>(
+    key: Key,
+    value: ThemeAttributeValues[Key]
+  ): void {
+    if (!this.isBrowser) return;
+
+    const { attr, defaultValue } = themeAttributeMap[key];
+
+    if (value === defaultValue) {
+      this.doc.documentElement.removeAttribute(attr);
+      return;
+    }
+
+    this.doc.documentElement.setAttribute(attr, value);
   }
 }
